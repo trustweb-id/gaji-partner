@@ -1,0 +1,2294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Partner-Gaji — HRIS & Payroll</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brandA: #6FB7FF; /* biru muda */
+      --brandB: #2B6CB0; /* biru matte */
+      --brandC: #3B82F6; /* aksen biru */
+    }
+    html, body { height: 100%; }
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial; }
+    .glass { backdrop-filter: saturate(140%) blur(12px); background: rgba(255,255,255,0.6); }
+    .card { background: rgba(255,255,255,0.85); border: 1px solid rgba(29,78,216,0.12); }
+    .chip { backdrop-filter: blur(8px); background: rgba(111,183,255,0.15); border: 1px solid rgba(43,108,176,0.25); color: #1e3a8a; }
+    .btn { transition: transform .08s ease, box-shadow .2s ease, opacity .2s ease; }
+    .btn:active { transform: translateY(1px); }
+    .tab-active { background: linear-gradient(90deg, rgba(255,255,255,0.22), rgba(255,255,255,0.08)); border-color: rgba(255,255,255,0.35); color: #0b1221; }
+    .modal-bg { background: rgba(6,10,24,0.55); backdrop-filter: blur(6px); }
+    @media print {
+      body * { visibility: hidden; }
+      #printArea, #printArea * { visibility: visible; }
+      #printArea { position: absolute; left: 0; top: 0; width: 100%; padding: 0; }
+      .no-print { display: none !important; }
+      .slip { break-inside: avoid; page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-[#E6F2FF] via-[#EAF6FF] to-[#F5FAFF] text-slate-800 selection:bg-blue-200 selection:text-slate-900">
+  <div class="relative">
+    <div class="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full opacity-30 blur-3xl" style="background: radial-gradient(ellipse at center, var(--brandA), transparent 60%);"></div>
+    <div class="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full opacity-20 blur-3xl" style="background: radial-gradient(ellipse at center, var(--brandB), transparent 60%);"></div>
+  </div>
+
+  <header class="max-w-7xl mx-auto px-6 pt-8">
+    <div class="glass rounded-2xl p-5 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-white/20">
+      <div class="flex items-center gap-4">
+        <div class="h-12 w-12 rounded-xl grid place-items-center shadow-lg bg-white">
+          <img src="https://ik.imagekit.io/logojkdiy/Partnerbisnis%20-%20Logo%20(2).png?updatedAt=." alt="Partner-Gaji Logo" class="h-8 w-auto" onerror="this.src=''; this.alt='Image failed to load'; this.style.display='none';"/>
+        </div>
+        <div>
+          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Partner-Gaji</h1>
+          <p class="text-slate-600 text-sm md:text-base">HRIS terintegrasi untuk Manajemen Karyawan & Penggajian</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <span class="chip px-3 py-1 rounded-full text-sm">Komponen dinamis</span>
+        <span class="chip px-3 py-1 rounded-full text-sm">THR/Bonus wizard</span>
+        <span class="chip px-3 py-1 rounded-full text-sm">Impor/Ekspor CSV</span>
+        <span class="chip px-3 py-1 rounded-full text-sm">Analitik & Grafik</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-6 md:py-8">
+    <div class="flex flex-wrap gap-2 no-print">
+      <button data-tab="karyawan" class="tab btn chip px-4 py-2 rounded-xl border border-white/20 hover:border-white/40">Manajemen</button>
+      <button data-tab="penggajian" class="tab btn chip px-4 py-2 rounded-xl border border-white/20 hover:border-white/40">Reviu & ACC</button>
+      <button data-tab="slip" class="tab btn chip px-4 py-2 rounded-xl border border-white/20 hover:border-white/40">Slip</button>
+      <button data-tab="thr" class="tab btn chip px-4 py-2 rounded-xl border border-white/20 hover:border-white/40">THR/Bonus</button>
+      <button data-tab="analitik" class="tab btn chip px-4 py-2 rounded-xl border border-white/20 hover:border-white/40">Analitik</button>
+      <button data-tab="batch" class="tab btn chip px-4 py-2 rounded-xl border border-white/20 hover:border-white/40">Batch Edit</button>
+      <button data-tab="kehadiran" class="tab btn chip px-4 py-2 rounded-xl border border-white/20 hover:border-white/40">Kehadiran/Lembur</button>
+      <button data-tab="pinjaman" class="tab btn chip px-4 py-2 rounded-xl border border-white/20 hover:border-white/40">Pinjaman</button>
+      <button data-tab="profil" class="tab btn chip px-4 py-2 rounded-xl border border-white/20 hover:border-white/40">Profil Perusahaan</button>
+      <div class="ml-auto flex items-center gap-3">
+        <button id="templatesBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-[rgba(43,108,176,0.08)] hover:bg-[rgba(43,108,176,0.15)] text-[#1e3a8a]">Template Struktur</button>
+        <button id="seedDataBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-[rgba(59,130,246,0.08)] hover:bg-[rgba(59,130,246,0.15)] text-[#1e3a8a]">Muat Data Contoh</button>
+        <button id="clearDataBtn" class="btn px-4 py-2 rounded-xl border border-rose-300/30 text-rose-700 bg-rose-50 hover:bg-rose-100">Bersihkan Data</button>
+      </div>
+    </div>
+
+    <div class="mt-4 text-xs text-slate-600 no-print">
+      Catatan: Perhitungan pajak/BPJS/lembur disederhanakan untuk demo. Jangan input data sensitif (mis. nomor identitas/rekening). Partner-Gaji berjalan lokal di browser Anda.
+    </div>
+
+    <!-- Karyawan -->
+    <section id="view-karyawan" class="mt-6 grid gap-4 md:gap-6">
+      <div class="flex flex-col md:flex-row md:items-center gap-3 no-print">
+        <div class="flex flex-1 items-center gap-2">
+          <div class="relative flex-1">
+            <input id="searchEmp" class="w-full card rounded-xl px-4 py-3 placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-300/50" placeholder="Cari karyawan: nama, NIK, divisi..." />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">⌘K</span>
+          </div>
+          <select id="filterDept" class="card rounded-xl px-3 py-3 outline-none">
+            <option value="">Semua Divisi</option>
+          </select>
+        </div>
+        <div class="flex gap-2">
+          <button id="importEmpBtn" class="btn px-4 py-3 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Impor CSV</button>
+          <button id="exportEmpBtn" class="btn px-4 py-3 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Ekspor CSV</button>
+          <button id="addEmpBtn" class="btn px-4 py-3 rounded-xl text-white font-semibold" style="background: linear-gradient(135deg, var(--brandB), var(--brandC));">+ Tambah</button>
+        </div>
+      </div>
+
+      <div class="card rounded-2xl p-4 md:p-6 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left min-w-[1000px]">
+            <thead class="text-slate-600 text-sm">
+              <tr>
+                <th class="py-3">Karyawan</th>
+                <th class="py-3">Divisi</th>
+                <th class="py-3">Jabatan</th>
+                <th class="py-3">Status Pajak</th>
+                <th class="py-3">BPJS</th>
+                <th class="py-3">Gaji Pokok</th>
+                <th class="py-3">Komponen Tambahan</th>
+                <th class="py-3 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="empTable" class="divide-y divide-blue-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reviu & ACC Penggajian -->
+    <section id="view-penggajian" class="mt-6 hidden grid gap-4 md:gap-6">
+      <div class="no-print grid gap-3 md:grid-cols-3">
+        <div class="card rounded-2xl p-4">
+          <div class="flex flex-wrap items-end gap-3">
+            <div>
+              <label class="text-sm text-slate-600">Periode</label>
+              <input id="periodInput" type="month" class="mt-1 card rounded-xl px-3 py-2 outline-none" />
+            </div>
+            <div>
+              <label class="text-sm text-slate-600">Filter ACC</label>
+              <select id="filterAcc" class="mt-1 card rounded-xl px-3 py-2 outline-none">
+                <option value="">Semua</option>
+                <option value="approved">Sudah ACC</option>
+                <option value="pending">Belum ACC</option>
+              </select>
+            </div>
+            <button id="recalcBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Hitung Ulang</button>
+            <button id="exportRecapBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Ekspor Rekap CSV</button>
+          </div>
+        </div>
+        <div class="card rounded-2xl p-4 md:col-span-2">
+          <div class="grid md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <div class="text-slate-600">Total Karyawan</div>
+              <div id="dashEmp" class="text-xl font-bold">0</div>
+            </div>
+            <div>
+              <div class="text-slate-600">Kotor (gaji + komponen)</div>
+              <div id="dashGross" class="text-xl font-bold">Rp0</div>
+            </div>
+            <div>
+              <div class="text-slate-600">Lembur</div>
+              <div id="dashOT" class="text-xl font-bold">Rp0</div>
+            </div>
+            <div>
+              <div class="text-slate-600">Dibayarkan (net)</div>
+              <div id="dashNet" class="text-xl font-bold">Rp0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card rounded-2xl p-4 md:p-6 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left min-w-[1100px]">
+            <thead class="text-slate-600 text-sm">
+              <tr>
+                <th class="py-3">
+                  <label class="inline-flex items-center gap-2">
+                    <input id="selectAllForPrint" type="checkbox" class="accent-blue-600">
+                    <span>Pilih</span>
+                  </label>
+                </th>
+                <th class="py-3">Karyawan</th>
+                <th class="py-3">Komponen</th>
+                <th class="py-3">Lembur</th>
+                <th class="py-3">Kotor</th>
+                <th class="py-3">Potongan</th>
+                <th class="py-3">Pajak</th>
+                <th class="py-3">BPJS</th>
+                <th class="py-3">Net</th>
+                <th class="py-3">ACC</th>
+                <th class="py-3 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="payrollTable" class="divide-y divide-blue-100"></tbody>
+          </table>
+        </div>
+        <div class="mt-4 flex flex-wrap gap-3 no-print">
+          <button id="bulkApproveBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Set ACC untuk yang dipilih</button>
+          <button id="applyLoanBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Terapkan Potongan Pinjaman (periode ini)</button>
+          <button id="bulkSlipBtn" class="btn px-4 py-2 rounded-xl text-white font-semibold" style="background: linear-gradient(135deg, var(--brandB), var(--brandC));">Preview & Cetak Slip (massal)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slip -->
+    <section id="view-slip" class="mt-6 hidden grid gap-4 md:gap-6">
+      <div class="card rounded-2xl p-4 md:p-6">
+        <div class="no-print grid md:grid-cols-4 gap-3">
+          <div>
+            <label class="text-sm text-slate-600">Periode</label>
+            <input id="periodSlip" type="month" class="mt-1 card rounded-xl px-3 py-2 outline-none" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-sm text-slate-600">Pilih Karyawan</label>
+            <select id="empForSlip" class="mt-1 card rounded-xl px-3 py-2 w-full outline-none"></select>
+          </div>
+          <div class="flex items-end gap-2">
+            <button id="previewSlipBtn" class="btn flex-1 px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Preview Slip</button>
+            <button id="printSlipBtn" class="btn flex-1 px-4 py-2 rounded-xl text-white font-semibold" style="background: linear-gradient(135deg, var(--brandB), var(--brandC));">Cetak</button>
+          </div>
+        </div>
+
+        <div id="singleSlipArea" class="mt-6 grid">
+          <div class="slip rounded-xl bg-white text-slate-900 p-6 shadow-lg">
+            <div class="flex items-center justify-between gap-4 border-b pb-4">
+              <div class="font-extrabold text-xl flex items-center gap-2">
+                <span id="activeCompanyName">Partner-Gaji</span>
+              </div>
+              <div class="text-sm text-right">
+                <div id="slipCompany">Slip Gaji</div>
+                <div id="slipPeriod" class="text-slate-600">Periode -</div>
+                <div id="slipNumber" class="text-slate-500">No: -</div>
+              </div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4 mt-4 text-sm">
+              <div>
+                <div><span class="text-slate-500">Nama:</span> <span id="slipName">-</span></div>
+                <div><span class="text-slate-500">NIK Karyawan:</span> <span id="slipNik">-</span></div>
+                <div><span class="text-slate-500">Divisi:</span> <span id="slipDept">-</span></div>
+                <div><span class="text-slate-500">Jabatan:</span> <span id="slipRole">-</span></div>
+                <div><span class="text-slate-500">Perusahaan:</span> <span id="slipCompanyName">-</span></div>
+              </div>
+              <div>
+                <div><span class="text-slate-500">Metode Bayar:</span> <span id="slipPayMethod">-</span></div>
+                <div><span class="text-slate-500">Status Pajak:</span> <span id="slipTaxStatus">-</span></div>
+                <div><span class="text-slate-500">BPJS:</span> <span id="slipBpjs">-</span></div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="font-semibold mb-2">Rincian</div>
+              <div class="grid md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <div class="font-medium text-slate-700 mb-1">Pendapatan</div>
+                  <ul id="slipEarnings" class="space-y-1"></ul>
+                </div>
+                <div>
+                  <div class="font-medium text-slate-700 mb-1">Potongan</div>
+                  <ul id="slipDeductions" class="space-y-1"></ul>
+                </div>
+              </div>
+              <div class="mt-4 border-t pt-3 grid grid-cols-2 gap-2 text-sm">
+                <div class="text-slate-600">Gaji Kotor</div><div id="slipGross" class="text-right font-semibold">Rp0</div>
+                <div class="text-slate-600">Total Potongan</div><div id="slipDeduct" class="text-right font-semibold">Rp0</div>
+                <div class="text-slate-600">Pajak</div><div id="slipTax" class="text-right font-semibold">Rp0</div>
+                <div class="text-slate-600">BPJS (pegawai)</div><div id="slipBpjsAmt" class="text-right font-semibold">Rp0</div>
+                <div class="text-slate-900 font-bold">Dibayarkan (Net)</div><div id="slipNet" class="text-right font-extrabold text-emerald-600">Rp0</div>
+              </div>
+            </div>
+            <div class="mt-6 flex items-center justify-between">
+              <div class="text-xs text-slate-500">
+                Slip ini dihasilkan otomatis oleh Partner-Gaji (demo).
+              </div>
+              <div class="flex items-center gap-3">
+                <canvas id="qrCanvas" width="76" height="76" class="border border-slate-200 rounded"></canvas>
+                <button id="copyVerifyBtn" class="btn chip px-3 py-1 rounded-lg text-xs">Salin Kode Verifikasi</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- THR/Bonus -->
+    <section id="view-thr" class="mt-6 hidden grid gap-4 md:gap-6">
+      <div class="card rounded-2xl p-4 md:p-6">
+        <div class="grid md:grid-cols-5 gap-3 no-print">
+          <div>
+            <label class="text-sm text-slate-600">Jenis</label>
+            <select id="thrType" class="mt-1 card rounded-xl px-3 py-2 outline-none">
+              <option value="thr">THR</option>
+              <option value="bonus">Bonus</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm text-slate-600">Periode</label>
+            <input id="thrPeriod" type="month" class="mt-1 card rounded-xl px-3 py-2 outline-none"/>
+          </div>
+          <div>
+            <label class="text-sm text-slate-600">% dari Gaji Pokok</label>
+            <input id="thrPercent" type="number" class="mt-1 card rounded-xl px-3 py-2 outline-none" min="0" value="100"/>
+          </div>
+          <div>
+            <label class="text-sm text-slate-600">Prorata</label>
+            <select id="thrProrate" class="mt-1 card rounded-xl px-3 py-2 outline-none">
+              <option value="year">Berdasar bulan kerja dalam tahun</option>
+              <option value="none">Tanpa prorata</option>
+            </select>
+          </div>
+          <div class="flex items-end gap-2">
+            <button id="calcThrBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Hitung</button>
+            <button id="exportThrBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Ekspor CSV</button>
+          </div>
+        </div>
+
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-left min-w-[900px]">
+            <thead class="text-slate-600 text-sm">
+              <tr>
+                <th class="py-3"><input id="thrSelectAll" type="checkbox" class="accent-blue-600"></th>
+                <th class="py-3">Karyawan</th>
+                <th class="py-3">Gaji Pokok</th>
+                <th class="py-3">Bulan Kerja (thn ybs)</th>
+                <th class="py-3">Nilai</th>
+                <th class="py-3 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="thrTable" class="divide-y divide-blue-100"></tbody>
+          </table>
+        </div>
+
+        <div class="mt-4 flex flex-wrap gap-3 no-print">
+          <button id="thrApproveBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Set ACC untuk yang dipilih</button>
+          <button id="thrSlipBtn" class="btn px-4 py-2 rounded-xl text-white font-semibold" style="background: linear-gradient(135deg, var(--brandB), var(--brandA));">Preview & Cetak Slip (massal)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Analitik & Grafik -->
+    <section id="view-analitik" class="mt-6 hidden grid gap-4 md:gap-6">
+      <div class="card rounded-2xl p-4">
+        <div class="flex flex-wrap items-end gap-3">
+          <div>
+            <label class="text-sm text-slate-600">Periode</label>
+            <input id="anaPeriod" type="month" class="mt-1 card rounded-xl px-3 py-2 outline-none"/>
+          </div>
+          <button id="anaRefreshBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Perbarui</button>
+          <div class="text-sm text-slate-600">Analitik biaya per divisi, tren kotor vs net, dan top cost center.</div>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="card rounded-2xl p-5">
+          <div class="font-semibold mb-3">Biaya per Divisi (Net)</div>
+          <div id="chartDept" class="space-y-3"></div>
+        </div>
+        <div class="card rounded-2xl p-5">
+          <div class="font-semibold mb-3">Tren Kotor vs Net (6 periode)</div>
+          <svg id="chartTrend" viewBox="0 0 600 240" class="w-full h-52 bg-white rounded-lg border border-blue-100"></svg>
+        </div>
+      </div>
+
+      <div class="card rounded-2xl p-5">
+        <div class="font-semibold mb-3">Top Cost Center (Divisi tertinggi biaya Net)</div>
+        <div id="topCostCenter" class="text-sm text-slate-700">-</div>
+      </div>
+    </section>
+
+    <!-- Batch Edit & Validasi -->
+    <section id="view-batch" class="mt-6 hidden grid gap-4 md:gap-6">
+      <div class="card rounded-2xl p-4">
+        <div class="font-semibold mb-2">Validasi Data Wajib</div>
+        <div id="validationList" class="text-sm text-slate-700">-</div>
+        <div class="mt-3 flex gap-2">
+          <button id="fixMissingDept" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Set Divisi 'Umum' untuk yang kosong</button>
+          <button id="fixMissingTax" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Set Pajak 'TK/0' untuk yang kosong</button>
+          <button id="fixMissingBpjs" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Set BPJS 'Tidak' untuk yang kosong</button>
+        </div>
+      </div>
+      <div class="card rounded-2xl p-4">
+        <div class="font-semibold mb-3">Batch Edit Komponen</div>
+        <div class="grid md:grid-cols-4 gap-3">
+          <div class="md:col-span-2">
+            <label class="text-sm text-slate-600">Pilih Karyawan</label>
+            <div id="batchEmpList" class="mt-1 max-h-48 overflow-auto border rounded-lg p-2 bg-white/60"></div>
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-sm text-slate-600">Komponen</label>
+            <div class="mt-1 grid grid-cols-2 gap-2">
+              <select id="batchKind" class="card rounded-lg px-3 py-2">
+                <option value="earning">Pendapatan</option>
+                <option value="deduction">Potongan</option>
+              </select>
+              <select id="batchMode" class="card rounded-lg px-3 py-2">
+                <option value="fixed">Nilai tetap</option>
+                <option value="percent_base">% dari Gaji Pokok</option>
+                <option value="percent_gross">% dari Kotor Awal</option>
+              </select>
+              <input id="batchName" class="card rounded-lg px-3 py-2 col-span-2" placeholder="Nama komponen (mis. Transport)"/>
+              <input id="batchValue" type="number" class="card rounded-lg px-3 py-2 col-span-2" placeholder="Nilai" min="0" value="0"/>
+            </div>
+            <div class="mt-3 flex gap-2">
+              <button id="batchAddBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Tambah ke yang dipilih</button>
+              <button id="batchRemoveBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Hapus komponen (berdasar nama)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Kehadiran & Lembur -->
+    <section id="view-kehadiran" class="mt-6 hidden grid gap-4 md:gap-6">
+      <div class="card rounded-2xl p-4">
+        <div class="font-semibold mb-2">Impor Timesheet (CSV)</div>
+        <div class="text-sm text-slate-700 mb-3">Kolom: nik,date(YYYY-MM-DD),hours,overtime_hours</div>
+        <div class="flex flex-wrap items-end gap-3">
+          <div>
+            <label class="text-sm text-slate-600">Periode</label>
+            <input id="attPeriod" type="month" class="mt-1 card rounded-xl px-3 py-2 outline-none"/>
+          </div>
+          <button id="importAttBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Impor CSV</button>
+          <button id="clearAttBtn" class="btn px-4 py-2 rounded-xl border border-rose-300/30 text-rose-700 bg-rose-50 hover:bg-rose-100">Hapus Timesheet Periode</button>
+        </div>
+      </div>
+      <div class="card rounded-2xl p-4">
+        <div class="font-semibold mb-2">Ringkasan Lembur</div>
+        <div id="attSummary" class="text-sm text-slate-700">-</div>
+      </div>
+    </section>
+
+    <!-- Pinjaman / Cash Advance -->
+    <section id="view-pinjaman" class="mt-6 hidden grid gap-4 md:gap-6">
+      <div class="card rounded-2xl p-4">
+        <div class="flex flex-wrap items-end gap-3">
+          <div class="flex-1">
+            <label class="text-sm text-slate-600">Pilih Karyawan</label>
+            <select id="loanEmp" class="mt-1 card rounded-xl px-3 py-2 w-full outline-none"></select>
+          </div>
+          <input id="loanTotal" type="number" min="0" class="card rounded-xl px-3 py-2" placeholder="Total Pinjaman (Rp)"/>
+          <input id="loanInstall" type="number" min="0" class="card rounded-xl px-3 py-2" placeholder="Cicilan Per Periode (Rp)"/>
+          <button id="loanAddBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Tambah/Update</button>
+        </div>
+      </div>
+      <div class="card rounded-2xl p-4">
+        <div class="font-semibold mb-2">Daftar Pinjaman</div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left min-w-[800px]">
+            <thead class="text-slate-600 text-sm">
+              <tr>
+                <th class="py-2">Karyawan</th>
+                <th class="py-2">Total</th>
+                <th class="py-2">Cicilan</th>
+                <th class="py-2">Sisa</th>
+                <th class="py-2 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="loanTable" class="divide-y divide-blue-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Profil Perusahaan -->
+    <section id="view-profil" class="mt-6 hidden grid gap-4 md:gap-6">
+      <div class="card rounded-2xl p-4">
+        <div class="flex flex-wrap items-end gap-3">
+          <div class="flex-1">
+            <label class="text-sm text-slate-600">Profil Aktif</label>
+            <select id="activeProfile" class="mt-1 card rounded-xl px-3 py-2 w-full outline-none"></select>
+          </div>
+          <button id="addProfileBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">+ Tambah Profil</button>
+          <button id="saveProfilesBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Simpan Semua</button>
+        </div>
+      </div>
+      <div id="profilesWrap" class="grid md:grid-cols-2 gap-4"></div>
+      <div class="card rounded-2xl p-4">
+        <div class="font-semibold">Format Nomor Slip</div>
+        <div class="text-sm text-slate-700 mt-1">Gunakan token: {YYYY}{MM}{SEQ3}. Contoh: PG-{YYYY}{MM}-{SEQ3} → PG-202501-001</div>
+        <input id="slipFormat" class="mt-2 card rounded-xl px-3 py-2 w-full outline-none" placeholder="PG-{YYYY}{MM}-{SEQ3}"/>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modals -->
+  <!-- Employee Modal -->
+  <div id="empModal" class="fixed inset-0 hidden items-center justify-center modal-bg z-40">
+    <div class="w-[95%] max-w-3xl card rounded-2xl p-5 md:p-6 relative">
+      <button id="closeEmpModal" class="absolute right-3 top-3 chip rounded-full px-2 py-1 text-sm no-print">✕</button>
+      <h3 id="empModalTitle" class="text-xl font-bold mb-4">Tambah Karyawan</h3>
+      <form id="empForm" class="grid gap-4">
+        <input type="hidden" id="empId" />
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-slate-700">Nama Lengkap</label>
+            <input id="empName" required class="mt-1 w-full card rounded-xl px-3 py-2 outline-none" placeholder="Contoh: Sinta Aulia" />
+          </div>
+          <div>
+            <label class="text-sm text-slate-700">NIK Karyawan</label>
+            <input id="empNik" required class="mt-1 w-full card rounded-xl px-3 py-2 outline-none" placeholder="Kode unik internal" />
+          </div>
+          <div>
+            <label class="text-sm text-slate-700">Divisi</label>
+            <input id="empDept" class="mt-1 w-full card rounded-xl px-3 py-2 outline-none" placeholder="Contoh: Finance" />
+          </div>
+          <div>
+            <label class="text-sm text-slate-700">Jabatan</label>
+            <input id="empRole" class="mt-1 w-full card rounded-xl px-3 py-2 outline-none" placeholder="Contoh: Supervisor" />
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-slate-700">Tanggal Bergabung</label>
+            <input id="empJoin" type="date" class="mt-1 w-full card rounded-xl px-3 py-2 outline-none"/>
+          </div>
+          <div>
+            <label class="text-sm text-slate-700">Metode Pembayaran</label>
+            <select id="empPayMethod" class="mt-1 w-full card rounded-xl px-3 py-2 outline-none">
+              <option>Transfer</option>
+              <option>Tunai</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-sm text-slate-700">Alamat</label>
+          <textarea id="empAddress" rows="2" class="mt-1 w-full card rounded-xl px-3 py-2 outline-none" placeholder="Alamat domisili (opsional)"></textarea>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-4">
+          <div>
+            <label class="text-sm text-slate-700">Status Pajak</label>
+            <select id="empTaxStatus" class="mt-1 w-full card rounded-xl px-3 py-2 outline-none">
+              <option value="TK/0">TK/0</option>
+              <option value="K/0">K/0</option>
+              <option value="K/1">K/1</option>
+              <option value="K/2">K/2</option>
+              <option value="K/3">K/3</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm text-slate-700">BPJS</label>
+            <select id="empBpjs" class="mt-1 w-full card rounded-xl px-3 py-2 outline-none">
+              <option value="Tidak">Tidak Terdaftar</option>
+              <option value="Kesehatan">BPJS Kesehatan</option>
+              <option value="Ketenagakerjaan">BPJS Ketenagakerjaan</option>
+              <option value="Kedua">Keduanya</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm text-slate-700">Catatan (opsional)</label>
+            <input id="empNote" class="mt-1 w-full card rounded-xl px-3 py-2 outline-none" placeholder="Keterangan tambahan" />
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-4">
+          <div>
+            <label class="text-sm text-slate-700">Gaji Pokok (Rp)</label>
+            <input id="empBase" type="number" min="0" value="0" class="mt-1 w-full card rounded-xl px-3 py-2 outline-none" />
+          </div>
+          <div>
+            <label class="text-sm text-slate-700">Tunj. Jabatan (Rp)</label>
+            <input id="empPosAllowance" type="number" min="0" value="0" class="mt-1 w-full card rounded-xl px-3 py-2 outline-none" />
+          </div>
+          <div>
+            <label class="text-sm text-slate-700">Tunj. Lainnya (Rp)</label>
+            <input id="empOtherAllowance" type="number" min="0" value="0" class="mt-1 w-full card rounded-xl px-3 py-2 outline-none" />
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-slate-700">Potongan Lainnya (Rp)</label>
+            <input id="empOtherDeduct" type="number" min="0" value="0" class="mt-1 w-full card rounded-xl px-3 py-2 outline-none" />
+          </div>
+          <div>
+            <label class="text-sm text-slate-700">Status</label>
+            <select id="empStatus" class="mt-1 w-full card rounded-xl px-3 py-2 outline-none">
+              <option value="aktif">Aktif</option>
+              <option value="nonaktif">Nonaktif</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Dynamic Components -->
+        <div class="mt-2">
+          <div class="flex items-center justify-between">
+            <h4 class="font-semibold">Komponen Gaji Dinamis</h4>
+            <div class="flex items-center gap-2">
+              <button type="button" id="applyTemplateBtn" class="btn chip px-3 py-1 rounded-lg">Terapkan Template</button>
+              <button type="button" id="addCompBtn" class="btn chip px-3 py-1 rounded-lg">+ Tambah Komponen</button>
+            </div>
+          </div>
+          <div class="text-xs text-slate-600 mt-1">Rumus sederhana: nilai tetap, % dari gaji pokok, atau % dari kotor awal.</div>
+          <div id="compList" class="mt-3 space-y-2"></div>
+        </div>
+
+        <div class="text-xs text-slate-500 -mt-1">
+          Demi keamanan, jangan masukkan nomor identitas/rek. bank. Gunakan kode internal saja.
+        </div>
+        <div class="flex justify-end gap-3 mt-2">
+          <button type="button" id="cancelEmpBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Batal</button>
+          <button type="submit" class="btn px-4 py-2 rounded-xl text-white font-semibold" style="background: linear-gradient(135deg, var(--brandB), var(--brandA));">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Templates Modal -->
+  <div id="tplModal" class="fixed inset-0 hidden items-center justify-center modal-bg z-40">
+    <div class="w-[95%] max-w-3xl card rounded-2xl p-5 md:p-6 relative">
+      <button id="closeTplModal" class="absolute right-3 top-3 chip rounded-full px-2 py-1 text-sm">✕</button>
+      <h3 class="text-xl font-bold mb-4">Template Struktur Gaji</h3>
+      <form id="tplForm" class="grid gap-4">
+        <input type="hidden" id="tplId"/>
+        <div class="grid md:grid-cols-3 gap-3">
+          <div class="md:col-span-2">
+            <label class="text-sm text-slate-700">Nama Template</label>
+            <input id="tplName" class="mt-1 w-full card rounded-xl px-3 py-2 outline-none" placeholder="Contoh: Grade B - Supervisor"/>
+          </div>
+          <div class="flex items-end">
+            <button type="submit" class="btn w-full px-4 py-2 rounded-xl text-white font-semibold" style="background: linear-gradient(135deg, var(--brandB), var(--brandA));">Simpan Template</button>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center justify-between">
+            <h4 class="font-semibold">Komponen Template</h4>
+            <button type="button" id="addTplCompBtn" class="btn chip px-3 py-1 rounded-lg">+ Tambah Komponen</button>
+          </div>
+          <div id="tplCompList" class="mt-3 space-y-2"></div>
+        </div>
+      </form>
+      <div class="mt-6">
+        <div class="font-semibold mb-2">Daftar Template</div>
+        <div id="tplList" class="grid gap-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slip Preview Modal (Mass Print) -->
+  <div id="slipModal" class="fixed inset-0 hidden items-center justify-center modal-bg z-40">
+    <div class="w-[96%] max-w-5xl h-[86vh] card rounded-2xl p-4 md:p-6 relative overflow-hidden">
+      <button id="closeSlipModal" class="absolute right-3 top-3 chip rounded-full px-2 py-1 text-sm no-print">✕</button>
+      <h3 id="slipModalTitle" class="text-xl font-bold mb-4">Preview Slip (Massal)</h3>
+      <div class="no-print flex items-center justify-between gap-3 mb-3">
+        <div class="text-slate-600 text-sm">Gunakan tombol cetak di bawah untuk mencetak semua slip yang tampil.</div>
+        <button id="printAllBtn" class="btn px-4 py-2 rounded-xl text-white font-semibold" style="background: linear-gradient(135deg, var(--brandB), var(--brandC));">Cetak Semua</button>
+      </div>
+      <div id="printArea" class="bg-white h-full overflow-auto rounded-xl p-4 md:p-6">
+        <div id="massSlips" class="grid gap-6"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verifikasi Slip Modal (Kode) -->
+  <div id="verifyModal" class="fixed inset-0 hidden items-center justify-center modal-bg z-50">
+    <div class="w-[95%] max-w-lg card rounded-2xl p-5 md:p-6 relative">
+      <button id="closeVerifyModal" class="absolute right-3 top-3 chip rounded-full px-2 py-1 text-sm no-print">✕</button>
+      <h3 class="text-xl font-bold mb-4">Verifikasi Slip</h3>
+      <div class="text-sm text-slate-700 mb-2">Tempelkan Kode Verifikasi (disalin dari QR) untuk melihat detail.</div>
+      <textarea id="verifyInput" rows="4" class="w-full card rounded-xl px-3 py-2 outline-none" placeholder="Tempel kode di sini"></textarea>
+      <div class="flex justify-end gap-2 mt-3">
+        <button id="doVerifyBtn" class="btn px-4 py-2 rounded-xl border border-white/20 bg-white/70 hover:bg-white">Verifikasi</button>
+      </div>
+      <div id="verifyResult" class="mt-4 text-sm text-slate-800"></div>
+      <div class="mt-4 text-xs text-slate-500">Catatan: kamera/scan langsung tidak tersedia di lingkungan ini, jadi gunakan salin-tempel kode dari QR.</div>
+    </div>
+  </div>
+
+  <footer class="max-w-7xl mx-auto px-6 py-10 text-slate-500 text-sm no-print">
+    © <span id="yearNow"></span> Partner-Gaji • HRIS & Penggajian (Demo Lokal)
+  </footer>
+
+  <script>
+    // Helpers
+    const $ = (s, sc=document) => sc.querySelector(s);
+    const $$ = (s, sc=document) => Array.from(sc.querySelectorAll(s));
+    const fmt = n => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(n||0));
+    const monthLabel = (ym) => {
+      if(!ym) return '-';
+      const [y,m] = ym.split('-').map(Number);
+      const dt = new Date(y, m-1, 1);
+      return dt.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+    };
+    const download = (filename, content, type='text/csv') => {
+      const blob = new Blob([content], {type});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.style.display = 'none';
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 500);
+    };
+    const hashString = (str) => {
+      let h = 2166136261 >>> 0;
+      for (let i=0;i<str.length;i++) {
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return (h>>>0).toString(16);
+    };
+
+    // Storage keys
+    const LS_EMP = 'pg_employees';
+    const LS_RUN = 'pg_payruns';   // { period: { empId: { approved: bool } } }
+    const LS_TPL = 'pg_templates'; // [{id,name,components}]
+    const LS_THR = 'pg_thr';       // { period: { empId: { value, approved } } }
+    const LS_ATT = 'pg_att';       // { period: { nik: { hours, ot_hours } } }
+    const LS_LOAN = 'pg_loan';     // { empId: { total, installment, remaining } }
+    const LS_PROF = 'pg_profiles'; // [{id,name,logo,address}]
+    const LS_PROF_ACTIVE = 'pg_profile_active';
+    const LS_SEQ = 'pg_slip_seq';  // { period: number }
+    const LS_FORMAT = 'pg_slip_format';
+
+    // Data access
+    const store = {
+      getEmp: () => JSON.parse(localStorage.getItem(LS_EMP) || '[]'),
+      setEmp: (arr) => localStorage.setItem(LS_EMP, JSON.stringify(arr)),
+      getRun: () => JSON.parse(localStorage.getItem(LS_RUN) || '{}'),
+      setRun: (obj) => localStorage.setItem(LS_RUN, JSON.stringify(obj)),
+      getTpl: () => JSON.parse(localStorage.getItem(LS_TPL) || '[]'),
+      setTpl: (arr) => localStorage.setItem(LS_TPL, JSON.stringify(arr)),
+      getThr: () => JSON.parse(localStorage.getItem(LS_THR) || '{}'),
+      setThr: (obj) => localStorage.setItem(LS_THR, JSON.stringify(obj)),
+      getAtt: () => JSON.parse(localStorage.getItem(LS_ATT) || '{}'),
+      setAtt: (obj) => localStorage.setItem(LS_ATT, JSON.stringify(obj)),
+      getLoan: () => JSON.parse(localStorage.getItem(LS_LOAN) || '{}'),
+      setLoan: (obj) => localStorage.setItem(LS_LOAN, JSON.stringify(obj)),
+      getProf: () => JSON.parse(localStorage.getItem(LS_PROF) || '[]'),
+      setProf: (arr) => localStorage.setItem(LS_PROF, JSON.stringify(arr)),
+      getActiveProf: () => localStorage.getItem(LS_PROF_ACTIVE) || '',
+      setActiveProf: (id) => localStorage.setItem(LS_PROF_ACTIVE, id),
+      getSeq: () => JSON.parse(localStorage.getItem(LS_SEQ) || '{}'),
+      setSeq: (obj) => localStorage.setItem(LS_SEQ, JSON.stringify(obj)),
+      getFormat: () => localStorage.getItem(LS_FORMAT) || 'PG-{YYYY}{MM}-{SEQ3}',
+      setFormat: (s) => localStorage.setItem(LS_FORMAT, s)
+    };
+
+    // State
+    let employees = store.getEmp();
+    let payruns = store.getRun();
+    let templates = store.getTpl();
+    let thrRuns = store.getThr();
+    let attendances = store.getAtt();
+    let loans = store.getLoan();
+    let profiles = store.getProf();
+    let activeProfileId = store.getActiveProf();
+    let slipSeq = store.getSeq();
+    let slipFormat = store.getFormat();
+    let currentTab = 'karyawan';
+    let selectedForPrint = new Set();
+    let thrSelected = new Set();
+
+    // Tabs
+    function setTab(tab){
+      currentTab = tab;
+      $$('.tab').forEach(b => {
+        b.classList.remove('tab-active');
+        if(b.dataset.tab === tab) b.classList.add('tab-active');
+      });
+      ['karyawan','penggajian','slip','thr','analitik','batch','kehadiran','pinjaman','profil'].forEach(id=>{
+        const sec = $('#view-'+id);
+        if(sec) sec.classList.add('hidden');
+      });
+      $('#view-' + tab).classList.remove('hidden');
+      if(tab==='analitik') renderAnalytics();
+      if(tab==='batch') renderBatch();
+      if(tab==='kehadiran') renderAttendanceSummary();
+      if(tab==='pinjaman') renderLoans();
+      if(tab==='profil') renderProfiles();
+    }
+
+    // Seed sample data
+    function seedData(){
+      employees = [
+        {
+          id: crypto.randomUUID(),
+          name: 'Sinta Aulia', nik: 'EMP-001',
+          dept: 'Finance', role: 'Supervisor',
+          address: 'Jl. Mawar No. 12, Bandung',
+          taxStatus: 'K/1', bpjs: 'Kedua', payMethod: 'Transfer',
+          base: 8000000, posAllowance: 1000000, otherAllowance: 500000,
+          otherDeduct: 250000, note: 'Tunj. transport', joinDate: '2021-03-15',
+          status: 'aktif',
+          components: [
+            { id: crypto.randomUUID(), name: 'Transport', kind: 'earning', mode: 'fixed', value: 300000 },
+            { id: crypto.randomUUID(), name: 'Insentif Penjualan', kind: 'earning', mode: 'percent_base', value: 10 },
+            { id: crypto.randomUUID(), name: 'Koperasi', kind: 'deduction', mode: 'fixed', value: 100000 },
+          ]
+        },
+        {
+          id: crypto.randomUUID(),
+          name: 'Budi Santoso', nik: 'EMP-002',
+          dept: 'Operasional', role: 'Staff',
+          address: 'Jl. Kenanga No. 5, Jakarta',
+          taxStatus: 'TK/0', bpjs: 'Kesehatan', payMethod: 'Transfer',
+          base: 6000000, posAllowance: 500000, otherAllowance: 250000,
+          otherDeduct: 0, note: '', joinDate: '2023-07-01', status: 'aktif',
+          components: [
+            { id: crypto.randomUUID(), name: 'Uang Makan', kind: 'earning', mode: 'fixed', value: 200000 },
+          ]
+        },
+        {
+          id: crypto.randomUUID(),
+          name: 'Nadia Putri', nik: 'EMP-003',
+          dept: 'HR', role: 'Generalist',
+          address: 'Jl. Cendana No. 3, Surabaya',
+          taxStatus: 'K/0', bpjs: 'Ketenagakerjaan', payMethod: 'Tunai',
+          base: 7000000, posAllowance: 750000, otherAllowance: 300000,
+          otherDeduct: 100000, note: 'Cicilan koperasi', joinDate: '2022-11-10', status: 'aktif',
+          components: [
+            { id: crypto.randomUUID(), name: 'Transport', kind: 'earning', mode: 'fixed', value: 250000 },
+            { id: crypto.randomUUID(), name: 'Insentif KPI', kind: 'earning', mode: 'percent_gross', value: 5 },
+          ]
+        }
+      ];
+      templates = [
+        {
+          id: crypto.randomUUID(), name: 'Grade B - Supervisor',
+          components: [
+            { id: crypto.randomUUID(), name: 'Transport', kind: 'earning', mode: 'fixed', value: 300000 },
+            { id: crypto.randomUUID(), name: 'Insentif KPI', kind: 'earning', mode: 'percent_base', value: 8 },
+          ]
+        },
+        {
+          id: crypto.randomUUID(), name: 'Grade C - Staff',
+          components: [
+            { id: crypto.randomUUID(), name: 'Uang Makan', kind: 'earning', mode: 'fixed', value: 200000 },
+          ]
+        }
+      ];
+      // attendance demo
+      const nowYM = new Date().toISOString().slice(0,7);
+      attendances = {
+        [nowYM]: {
+          'EMP-001': { hours: 176, ot_hours: 6 },
+          'EMP-002': { hours: 172, ot_hours: 2 },
+          'EMP-003': { hours: 168, ot_hours: 4 }
+        }
+      };
+      // loans demo
+      loans = {
+        [employees[0].id]: { total: 3000000, installment: 500000, remaining: 2000000 }
+      };
+      // profiles demo
+      profiles = [
+        { id: crypto.randomUUID(), name: 'Partner-Gaji', logo: 'https://ik.imagekit.io/logojkdiy/Partnerbisnis%20-%20Logo%20(2).png?updatedAt=.', address: 'Jl. Contoh No. 123, Jakarta' },
+        { id: crypto.randomUUID(), name: 'PG Subsidiary', logo: '', address: 'Jl. Melati No. 45, Bandung' }
+      ];
+      activeProfileId = profiles[0].id;
+      slipFormat = 'PG-{YYYY}{MM}-{SEQ3}';
+      slipSeq = {};
+      store.setEmp(employees); store.setTpl(templates); store.setAtt(attendances); store.setLoan(loans);
+      store.setProf(profiles); store.setActiveProf(activeProfileId); store.setFormat(slipFormat); store.setSeq(slipSeq);
+      payruns = {}; store.setRun(payruns);
+      thrRuns = {}; store.setThr(thrRuns);
+      renderAll();
+      alert('Data contoh dimuat.');
+    }
+
+    function clearData(){
+      if(!confirm('Hapus semua data lokal?')) return;
+      localStorage.removeItem(LS_EMP);
+      localStorage.removeItem(LS_RUN);
+      localStorage.removeItem(LS_TPL);
+      localStorage.removeItem(LS_THR);
+      localStorage.removeItem(LS_ATT);
+      localStorage.removeItem(LS_LOAN);
+      localStorage.removeItem(LS_PROF);
+      localStorage.removeItem(LS_PROF_ACTIVE);
+      localStorage.removeItem(LS_SEQ);
+      localStorage.removeItem(LS_FORMAT);
+      employees = []; payruns = {}; templates = []; thrRuns = {}; attendances = {}; loans = {};
+      profiles = []; activeProfileId = ''; slipSeq = {}; slipFormat = 'PG-{YYYY}{MM}-{SEQ3}';
+      renderAll();
+    }
+
+    // Filters & Search
+    function setupFilters(){
+      const deptSet = new Set(['']);
+      employees.forEach(e => deptSet.add(e.dept || ''));
+      const filterDept = $('#filterDept');
+      filterDept.innerHTML = '<option value="">Semua Divisi</option>' + Array.from(deptSet).filter(Boolean).map(d => `<option>${d}</option>`).join('');
+    }
+
+    // Component UI row
+    function compRow(c){
+      return `
+        <div class="card rounded-xl p-3 flex flex-wrap items-center gap-2" data-comp-id="${c.id}">
+          <select class="comp-kind card rounded-lg px-2 py-1">
+            <option value="earning" ${c.kind==='earning'?'selected':''}>Pendapatan</option>
+            <option value="deduction" ${c.kind==='deduction'?'selected':''}>Potongan</option>
+          </select>
+          <input class="comp-name card rounded-lg px-2 py-1 flex-1 min-w-[140px]" placeholder="Nama komponen" value="${c.name||''}"/>
+          <select class="comp-mode card rounded-lg px-2 py-1">
+            <option value="fixed" ${c.mode==='fixed'?'selected':''}>Nilai tetap</option>
+            <option value="percent_base" ${c.mode==='percent_base'?'selected':''}>% dari Gaji Pokok</option>
+            <option value="percent_gross" ${c.mode==='percent_gross'?'selected':''}>% dari Kotor Awal</option>
+          </select>
+          <input type="number" min="0" class="comp-value card rounded-lg px-2 py-1 w-28" value="${Number(c.value||0)}"/>
+          <button type="button" class="btn chip px-3 py-1 rounded-lg comp-del">Hapus</button>
+        </div>
+      `;
+    }
+
+    // Employee CRUD
+    function openEmpModal(data=null){
+      $('#empModalTitle').textContent = data ? 'Edit Karyawan' : 'Tambah Karyawan';
+      $('#empId').value = data?.id || '';
+      $('#empName').value = data?.name || '';
+      $('#empNik').value = data?.nik || '';
+      $('#empDept').value = data?.dept || '';
+      $('#empRole').value = data?.role || '';
+      $('#empAddress').value = data?.address || '';
+      $('#empTaxStatus').value = data?.taxStatus || 'TK/0';
+      $('#empBpjs').value = data?.bpjs || 'Tidak';
+      $('#empPayMethod').value = data?.payMethod || 'Transfer';
+      $('#empBase').value = data?.base ?? 0;
+      $('#empPosAllowance').value = data?.posAllowance ?? 0;
+      $('#empOtherAllowance').value = data?.otherAllowance ?? 0;
+      $('#empOtherDeduct').value = data?.otherDeduct ?? 0;
+      $('#empNote').value = data?.note || '';
+      $('#empJoin').value = data?.joinDate || '';
+      $('#empStatus').value = data?.status || 'aktif';
+
+      const comps = data?.components || [];
+      const list = $('#compList');
+      list.innerHTML = comps.map(compRow).join('') || '<div class="text-slate-500 text-sm">Belum ada komponen tambahan.</div>';
+
+      $('#empModal').classList.remove('hidden');
+      $('#empModal').classList.add('flex');
+
+      // Bind comp deletes
+      $$('#compList .comp-del').forEach(btn=>{
+        btn.onclick = () => {
+          const wrap = btn.closest('[data-comp-id]');
+          wrap.remove();
+          if(!$('#compList').children.length){
+            $('#compList').innerHTML = '<div class="text-slate-500 text-sm">Belum ada komponen tambahan.</div>';
+          }
+        };
+      });
+    }
+    function closeEmpModal(){
+      $('#empModal').classList.add('hidden');
+      $('#empModal').classList.remove('flex');
+    }
+    function addCompRow(){
+      if($('#compList').children.length && $('#compList').firstElementChild.classList.contains('text-slate-500')) $('#compList').innerHTML='';
+      const c = { id: crypto.randomUUID(), name: '', kind: 'earning', mode: 'fixed', value: 0 };
+      $('#compList').insertAdjacentHTML('beforeend', compRow(c));
+      $$('#compList .comp-del').forEach(btn=>{
+        if(!btn.onclick) btn.onclick = () => btn.closest('[data-comp-id]').remove();
+      });
+    }
+
+    function saveEmp(e){
+      e.preventDefault();
+      const comps = $$('#compList [data-comp-id]').map(row => ({
+        id: row.getAttribute('data-comp-id'),
+        kind: row.querySelector('.comp-kind').value,
+        name: row.querySelector('.comp-name').value.trim(),
+        mode: row.querySelector('.comp-mode').value,
+        value: Number(row.querySelector('.comp-value').value || 0),
+      })).filter(c => c.name);
+
+      const data = {
+        id: $('#empId').value || crypto.randomUUID(),
+        name: $('#empName').value.trim(),
+        nik: $('#empNik').value.trim(),
+        dept: $('#empDept').value.trim(),
+        role: $('#empRole').value.trim(),
+        address: $('#empAddress').value.trim(),
+        taxStatus: $('#empTaxStatus').value,
+        bpjs: $('#empBpjs').value,
+        payMethod: $('#empPayMethod').value,
+        base: Number($('#empBase').value || 0),
+        posAllowance: Number($('#empPosAllowance').value || 0),
+        otherAllowance: Number($('#empOtherAllowance').value || 0),
+        otherDeduct: Number($('#empOtherDeduct').value || 0),
+        note: $('#empNote').value.trim(),
+        joinDate: $('#empJoin').value || '',
+        status: $('#empStatus').value || 'aktif',
+        components: comps,
+      };
+      if(!data.name || !data.nik){ alert('Nama dan NIK karyawan wajib diisi.'); return; }
+      const idx = employees.findIndex(x => x.id === data.id);
+      if(idx >= 0) employees[idx] = data; else employees.push(data);
+      store.setEmp(employees);
+      closeEmpModal();
+      renderAll();
+      setTab('karyawan');
+    }
+    function deleteEmp(id){
+      if(!confirm('Hapus karyawan ini?')) return;
+      employees = employees.filter(e => e.id !== id);
+      store.setEmp(employees);
+      renderAll();
+    }
+
+    // Templates
+    function openTplModal(edit=null){
+      $('#tplId').value = edit?.id || '';
+      $('#tplName').value = edit?.name || '';
+      const comps = edit?.components || [];
+      $('#tplCompList').innerHTML = comps.map(compRow).join('') || '<div class="text-slate-500 text-sm">Belum ada komponen pada template.</div>';
+      $('#tplModal').classList.remove('hidden');
+      $('#tplModal').classList.add('flex');
+      renderTplList();
+    }
+    function closeTplModal(){
+      $('#tplModal').classList.add('hidden');
+      $('#tplModal').classList.remove('flex');
+    }
+    function addTplComp(){
+      if($('#tplCompList').children.length && $('#tplCompList').firstElementChild.classList.contains('text-slate-500')) $('#tplCompList').innerHTML='';
+      const c = { id: crypto.randomUUID(), name: '', kind: 'earning', mode: 'fixed', value: 0 };
+      $('#tplCompList').insertAdjacentHTML('beforeend', compRow(c));
+      $$('#tplCompList .comp-del').forEach(btn=>{
+        if(!btn.onclick) btn.onclick = () => btn.closest('[data-comp-id]').remove();
+      });
+    }
+    function readCompList(container){
+      return $$('.card.rounded-xl[data-comp-id]', container).map(row => ({
+        id: row.getAttribute('data-comp-id'),
+        kind: row.querySelector('.comp-kind').value,
+        name: row.querySelector('.comp-name').value.trim(),
+        mode: row.querySelector('.comp-mode').value,
+        value: Number(row.querySelector('.comp-value').value || 0),
+      })).filter(c => c.name);
+    }
+    function renderTplList(){
+      $('#tplList').innerHTML = templates.map(t => `
+        <div class="card rounded-xl p-3 flex items-center justify-between gap-3">
+          <div>
+            <div class="font-semibold">${t.name}</div>
+            <div class="text-xs text-slate-600">${t.components.length} komponen</div>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn chip px-3 py-1 rounded-lg" data-edit-tpl="${t.id}">Edit</button>
+            <button class="btn chip px-3 py-1 rounded-lg text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200" data-del-tpl="${t.id}">Hapus</button>
+          </div>
+        </div>
+      `).join('') || '<div class="text-slate-500 text-sm">Belum ada template.</div>';
+
+      $$('#tplList [data-edit-tpl]').forEach(b => b.onclick = () => {
+        const t = templates.find(x => x.id === b.dataset.editTpl);
+        openTplModal(t);
+      });
+      $$('#tplList [data-del-tpl]').forEach(b => b.onclick = () => {
+        if(!confirm('Hapus template ini?')) return;
+        templates = templates.filter(x => x.id !== b.dataset.delTpl);
+        store.setTpl(templates);
+        renderTplList();
+      });
+    }
+    function applyTemplateToEmp(){
+      if(!templates.length){ alert('Belum ada template. Buat dulu di "Template Struktur".'); return; }
+      const name = prompt('Ketik nama template yang ingin diterapkan:\n' + templates.map(t => '- ' + t.name).join('\n'));
+      if(!name) return;
+      const tpl = templates.find(t => t.name.toLowerCase() === name.trim().toLowerCase());
+      if(!tpl){ alert('Template tidak ditemukan.'); return; }
+      if(!confirm('Terapkan dan ganti komponen dinamis sesuai template?')) return;
+      const list = $('#compList');
+      list.innerHTML = tpl.components.map(compRow).join('');
+      $$('#compList .comp-del').forEach(btn=>{
+        btn.onclick = () => btn.closest('[data-comp-id]').remove();
+      });
+    }
+
+    // Attendance (CSV)
+    function importAttendanceCSV(){
+      const period = $('#attPeriod').value;
+      if(!period){ alert('Isi periode terlebih dahulu.'); return; }
+      const inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = '.csv,text/csv';
+      inp.onchange = (e)=>{
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const text = reader.result;
+          const lines = text.split(/\r?\n/).filter(Boolean);
+          const header = lines.shift();
+          const rows = lines.map(line => {
+            const cols = [];
+            let cur = '', inQ=false;
+            for(let i=0;i<line.length;i++){
+              const ch = line[i];
+              if(ch === '"'){ if(inQ && line[i+1] === '"'){ cur+='"'; i++; } else inQ = !inQ; }
+              else if(ch === ',' && !inQ){ cols.push(cur); cur=''; }
+              else cur+=ch;
+            }
+            cols.push(cur);
+            return cols.map(s=>s.replace(/^"|"$/g,''));
+          });
+          const idx = (name) => header.split(',').map(s=>s.trim()).indexOf(name);
+          const iNik = idx('nik'), iDate = idx('date'), iH = idx('hours'), iOT = idx('overtime_hours');
+          if(iNik<0 || iDate<0 || iH<0 || iOT<0){ alert('Header harus berisi: nik,date,hours,overtime_hours'); return; }
+          attendances[period] = attendances[period] || {};
+          rows.forEach(r => {
+            const nik = r[iNik];
+            const hours = Number(r[iH]||0);
+            const ot = Number(r[iOT]||0);
+            attendances[period][nik] = attendances[period][nik] || { hours:0, ot_hours:0 };
+            attendances[period][nik].hours += hours;
+            attendances[period][nik].ot_hours += ot;
+          });
+          store.setAtt(attendances);
+          renderAttendanceSummary();
+          alert('Timesheet diimpor.');
+        };
+        reader.readAsText(file);
+      };
+      inp.click();
+    }
+
+    function clearAttendancePeriod(){
+      const period = $('#attPeriod').value;
+      if(!period){ alert('Isi periode terlebih dahulu.'); return; }
+      if(!confirm('Hapus semua timesheet periode ini?')) return;
+      if(attendances[period]) delete attendances[period];
+      store.setAtt(attendances);
+      renderAttendanceSummary();
+    }
+
+    function renderAttendanceSummary(){
+      const period = $('#attPeriod').value;
+      const data = attendances[period] || {};
+      const byEmp = Object.entries(data).map(([nik, v])=>{
+        const emp = employees.find(e => e.nik === nik);
+        return { nik, name: emp?.name || nik, hours: v.hours, ot: v.ot_hours };
+      });
+      $('#attSummary').innerHTML = byEmp.length ? `
+        <div class="overflow-x-auto">
+          <table class="w-full text-left min-w-[700px]">
+            <thead class="text-slate-600 text-sm">
+              <tr><th class="py-2">Karyawan</th><th class="py-2">NIK</th><th class="py-2">Jam Kerja</th><th class="py-2">Jam Lembur</th></tr>
+            </thead>
+            <tbody class="divide-y divide-blue-100">
+              ${byEmp.map(r=>`<tr>
+                <td class="py-2">${r.name}</td><td class="py-2">${r.nik}</td><td class="py-2">${r.hours}</td><td class="py-2">${r.ot}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="text-slate-600 text-sm">Belum ada data periode ini.</div>';
+    }
+
+    // Loans
+    function renderLoans(){
+      const sel = $('#loanEmp');
+      sel.innerHTML = employees.map(e=>`<option value="${e.id}">${e.name} — ${e.nik}</option>`).join('') || '<option value="">(Tidak ada data)</option>';
+      const rows = employees.map(e=>{
+        const l = loans[e.id];
+        return `
+          <tr>
+            <td class="py-2">${e.name} — <span class="text-slate-500 text-xs">${e.nik}</span></td>
+            <td class="py-2">${fmt(l?.total||0)}</td>
+            <td class="py-2">${fmt(l?.installment||0)}</td>
+            <td class="py-2">${fmt(l?.remaining||0)}</td>
+            <td class="py-2 text-right">
+              <button class="btn chip px-3 py-1 rounded-lg" data-loan-edit="${e.id}">Edit</button>
+              <button class="btn chip px-3 py-1 rounded-lg text-rose-700 bg-rose-50 hover:bg-rose-100" data-loan-del="${e.id}">Hapus</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      $('#loanTable').innerHTML = rows || '<tr><td colspan="5" class="py-4 text-center text-slate-600">Belum ada karyawan.</td></tr>';
+
+      $$('#loanTable [data-loan-edit]').forEach(b=>{
+        b.onclick = () => {
+          const id = b.dataset.loanEdit;
+          const l = loans[id] || { total:0, installment:0, remaining:0 };
+          $('#loanEmp').value = id;
+          $('#loanTotal').value = l.total || 0;
+          $('#loanInstall').value = l.installment || 0;
+        };
+      });
+      $$('#loanTable [data-loan-del]').forEach(b=>{
+        b.onclick = () => {
+          const id = b.dataset.loanDel;
+          if(!confirm('Hapus data pinjaman karyawan ini?')) return;
+          delete loans[id];
+          store.setLoan(loans);
+          renderLoans();
+        };
+      });
+    }
+
+    function addOrUpdateLoan(){
+      const id = $('#loanEmp').value;
+      if(!id){ alert('Pilih karyawan.'); return; }
+      const total = Number($('#loanTotal').value||0);
+      const inst = Number($('#loanInstall').value||0);
+      if(total<=0 || inst<=0){ alert('Total dan cicilan harus > 0'); return; }
+      const remain = loans[id]?.remaining ?? total;
+      loans[id] = { total, installment: inst, remaining: Math.min(remain, total) };
+      store.setLoan(loans);
+      renderLoans();
+      alert('Pinjaman disimpan.');
+    }
+
+    // Profiles
+    function renderProfiles(){
+      const sel = $('#activeProfile');
+      sel.innerHTML = profiles.map(p=>`<option value="${p.id}">${p.name}</option>`).join('') || '<option value="">(Belum ada profil)</option>';
+      if(!activeProfileId && profiles[0]) activeProfileId = profiles[0].id;
+      sel.value = activeProfileId || '';
+      $('#slipFormat').value = slipFormat || 'PG-{YYYY}{MM}-{SEQ3}';
+
+      const wrap = $('#profilesWrap');
+      wrap.innerHTML = profiles.map(p => `
+        <div class="card rounded-2xl p-4" data-prof="${p.id}">
+          <div class="grid gap-2">
+            <input class="prof-name card rounded-lg px-3 py-2" placeholder="Nama" value="${p.name||''}"/>
+            <input class="prof-logo card rounded-lg px-3 py-2" placeholder="URL Logo (opsional)" value="${p.logo||''}"/>
+            <textarea class="prof-addr card rounded-lg px-3 py-2" rows="2" placeholder="Alamat">${p.address||''}</textarea>
+            <div class="flex justify-between">
+              <button class="btn chip px-3 py-1 rounded-lg" data-prof-setactive="${p.id}">Jadikan Aktif</button>
+              <button class="btn chip px-3 py-1 rounded-lg text-rose-700 bg-rose-50 hover:bg-rose-100" data-prof-del="${p.id}">Hapus</button>
+            </div>
+          </div>
+        </div>
+      `).join('') || '<div class="card rounded-2xl p-4 text-slate-600">Belum ada profil. Klik "Tambah Profil".</div>';
+
+      $$('#profilesWrap [data-prof-setactive]').forEach(b=>{
+        b.onclick = () => { activeProfileId = b.dataset.profSetactive; store.setActiveProf(activeProfileId); renderProfiles(); alert('Profil aktif diubah.'); };
+      });
+      $$('#profilesWrap [data-prof-del]').forEach(b=>{
+        b.onclick = () => {
+          const id = b.dataset.profDel;
+          if(!confirm('Hapus profil ini?')) return;
+          profiles = profiles.filter(p => p.id !== id);
+          if(activeProfileId === id) activeProfileId = profiles[0]?.id || '';
+          store.setProf(profiles); store.setActiveProf(activeProfileId);
+          renderProfiles();
+        };
+      });
+    }
+
+    function addProfile(){
+      profiles.push({ id: crypto.randomUUID(), name: '', logo: '', address: '' });
+      store.setProf(profiles);
+      renderProfiles();
+    }
+    function saveProfiles(){
+      // read back edits
+      $$('#profilesWrap [data-prof]').forEach(card=>{
+        const id = card.getAttribute('data-prof');
+        const name = card.querySelector('.prof-name').value.trim();
+        const logo = card.querySelector('.prof-logo').value.trim();
+        const address = card.querySelector('.prof-addr').value.trim();
+        const p = profiles.find(x => x.id === id);
+        if(p){ p.name = name; p.logo = logo; p.address = address; }
+      });
+      slipFormat = $('#slipFormat').value || 'PG-{YYYY}{MM}-{SEQ3}';
+      store.setProf(profiles); store.setActiveProf(activeProfileId); store.setFormat(slipFormat);
+      alert('Profil & format slip disimpan.');
+      renderProfiles();
+    }
+
+    // Payroll with dynamic components + OT + loans
+    function getActiveProfile(){
+      return profiles.find(p => p.id === activeProfileId) || { name: 'Partner-Gaji', logo: '', address: '' };
+    }
+
+    function getAttendance(period, nik){
+      return attendances?.[period]?.[nik] || { hours:0, ot_hours:0 };
+    }
+
+    function hourlyRate(base){
+      return base / 173; // standar ID: 173 jam
+    }
+
+    function calcComponents(emp){
+      const comps = Array.isArray(emp.components) ? emp.components : [];
+      const base = Number(emp.base||0);
+      const pos = Number(emp.posAllowance||0);
+      const otherAlw = Number(emp.otherAllowance||0);
+      const earnFixed = comps.filter(c => c.kind==='earning' && (c.mode==='fixed' || c.mode==='percent_base'));
+      const earnGross = comps.filter(c => c.kind==='earning' && c.mode==='percent_gross');
+      const dedFixed = comps.filter(c => c.kind==='deduction' && (c.mode==='fixed' || c.mode==='percent_base'));
+      const dedGross = comps.filter(c => c.kind==='deduction' && c.mode==='percent_gross');
+
+      const calcVal = (c, grossBase) => {
+        if(c.mode==='fixed') return Number(c.value||0);
+        if(c.mode==='percent_base') return Math.round(base * Number(c.value||0) / 100);
+        if(c.mode==='percent_gross') return Math.round(grossBase * Number(c.value||0) / 100);
+        return 0;
+      };
+
+      const grossBase = base + pos + otherAlw + earnFixed.reduce((s,c)=> s + calcVal(c,0), 0);
+
+      const earnings = [
+        ...earnFixed.map(c => ({...c, amount: calcVal(c, grossBase)})),
+        ...earnGross.map(c => ({...c, amount: calcVal(c, grossBase)})),
+      ];
+      const deductions = [
+        ...dedFixed.map(c => ({...c, amount: calcVal(c, grossBase)})),
+        ...dedGross.map(c => ({...c, amount: calcVal(c, grossBase)})),
+      ];
+      return { earnings, deductions, grossBase };
+    }
+
+    function calcPayroll(emp, period){
+      const base = Number(emp.base||0);
+      const pos = Number(emp.posAllowance||0);
+      const otherAlw = Number(emp.otherAllowance||0);
+      const otherDeduct = Number(emp.otherDeduct||0);
+
+      const { earnings, deductions, grossBase } = calcComponents(emp);
+
+      // Overtime: 1.5x tarif per jam * jam lembur
+      const att = getAttendance(period, emp.nik);
+      const otPay = Math.round(hourlyRate(base) * 1.5 * Number(att.ot_hours||0));
+      if(otPay > 0) earnings.push({ id: 'ot', name: 'Lembur', kind:'earning', mode:'fixed', amount: otPay });
+
+      // Gross
+      const gross = grossBase + otPay;
+
+      // BPJS (pegawai) demo: 1% dari gaji pokok jika terdaftar
+      const hasBpjs = (emp.bpjs && emp.bpjs !== 'Tidak');
+      const bpjs = hasBpjs ? Math.round(base * 0.01) : 0;
+
+      // Loan deduction (tidak mengurangi saldo otomatis di sini)
+      const ln = loans[emp.id];
+      const loanDed = Math.min(Number(ln?.installment||0), Number(ln?.remaining||0)||0);
+      if(loanDed > 0) deductions.push({ id:'loan', name:'Cicilan Pinjaman', kind:'deduction', mode:'fixed', amount: loanDed });
+
+      // Pajak sederhana 5% dari (gaji kotor - potongan lain - bpjs - dyn deductions)
+      const dynDedTotal = deductions.reduce((s,c)=> s + Number(c.amount||0), 0);
+      const taxBase = Math.max(0, gross - otherDeduct - bpjs - dynDedTotal);
+      const tax = Math.round(taxBase * 0.05);
+
+      const totalDeductions = otherDeduct + bpjs + tax + dynDedTotal;
+      const net = gross - totalDeductions;
+
+      return {
+        base, pos, otherAlw, gross, otherDeduct, bpjs, tax, net,
+        earnings, deductions, otPay, loanDed
+      };
+    }
+
+    // Slip numbering
+    function nextSlipNumber(period){
+      const seq = (slipSeq[period] || 0) + 1;
+      slipSeq[period] = seq; store.setSeq(slipSeq);
+      const yyyy = period.slice(0,4);
+      const mm = period.slice(5,7);
+      const seq3 = String(seq).padStart(3,'0');
+      return slipFormat.replace('{YYYY}', yyyy).replace('{MM}', mm).replace('{SEQ3}', seq3);
+    }
+
+    // Renderers
+    function setupEmpSelect(){
+      const empSelect = $('#empForSlip');
+      empSelect.innerHTML = employees.map(e => `<option value="${e.id}">${e.name} — ${e.nik}</option>`).join('') || '<option value="">(Tidak ada data)</option>';
+      // loans dropdown too
+      renderLoans();
+    }
+
+    function renderEmployees(){
+      setupFilters();
+      const q = ($('#searchEmp').value||'').toLowerCase();
+      const f = $('#filterDept').value || '';
+      const filtered = employees.filter(e => {
+        const hit = (e.name||'').toLowerCase().includes(q) || (e.nik||'').toLowerCase().includes(q) || (e.dept||'').toLowerCase().includes(q);
+        const deptOk = !f || (e.dept||'') === f;
+        return hit && deptOk;
+      });
+      $('#empTable').innerHTML = filtered.map(e => {
+        return `
+          <tr id="emp-${e.id}">
+            <td class="py-3">
+              <div class="font-semibold">${e.name}</div>
+              <div class="text-xs text-slate-500">${e.nik}</div>
+              <div class="text-xs text-slate-500 mt-1">Join: ${e.joinDate || '-'}</div>
+            </td>
+            <td class="py-3">${e.dept||'-'}</td>
+            <td class="py-3">${e.role||'-'}</td>
+            <td class="py-3">${e.taxStatus||'-'}</td>
+            <td class="py-3">${e.bpjs||'-'}</td>
+            <td class="py-3">${fmt(e.base)}</td>
+            <td class="py-3 text-sm">${(e.components||[]).length} komponen</td>
+            <td class="py-3 text-right">
+              <div class="inline-flex gap-2">
+                <button class="btn chip px-3 py-1 rounded-lg" data-edit="${e.id}">Edit</button>
+                <button class="btn chip px-3 py-1 rounded-lg text-rose-700 bg-rose-50 hover:bg-rose-100" data-del="${e.id}">Hapus</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('') || `<tr><td colspan="8" class="py-6 text-center text-slate-600">Belum ada data karyawan.</td></tr>`;
+
+      $$('#empTable [data-edit]').forEach(b=>{
+        b.onclick = () => {
+          const emp = employees.find(x => x.id === b.dataset.edit);
+          openEmpModal(emp);
+        };
+      });
+      $$('#empTable [data-del]').forEach(b=>{
+        b.onclick = () => deleteEmp(b.dataset.del);
+      });
+
+      setupEmpSelect();
+    }
+
+    function renderPayroll(){
+      const period = $('#periodInput').value;
+      if(!period){ return; }
+      if(!payruns[period]) payruns[period] = {};
+      store.setRun(payruns);
+
+      selectedForPrint = new Set();
+      $('#selectAllForPrint').checked = false;
+
+      const filterAcc = $('#filterAcc').value;
+      let totalGross = 0, totalNet = 0, totalOT = 0;
+
+      const rows = employees.map(e => {
+        const p = calcPayroll(e, period);
+        totalGross += p.gross; totalNet += p.net; totalOT += p.otPay||0;
+        const approved = !!(payruns[period]?.[e.id]?.approved);
+        return { e, p, approved };
+      }).filter(row => {
+        if(!filterAcc) return true;
+        return filterAcc === 'approved' ? row.approved : !row.approved;
+      });
+
+      $('#payrollTable').innerHTML = rows.map(({e,p,approved}) => `
+        <tr id="pay-${e.id}">
+          <td class="py-3"><input type="checkbox" class="accent-blue-600 rowCheck" data-id="${e.id}"></td>
+          <td class="py-3">
+            <div class="font-semibold">${e.name}</div>
+            <div class="text-xs text-slate-500">${e.nik}</div>
+          </td>
+          <td class="py-3 text-sm">
+            <div>Pokok: ${fmt(p.base)}</div>
+            <div>Tunj. Jabatan: ${fmt(p.pos)}</div>
+            <div>Tunj. Lain: ${fmt(p.otherAlw)}</div>
+            ${(p.earnings||[]).filter(c=>c.id!=='ot').map(c=>`<div>${c.name}: ${fmt(c.amount)}</div>`).join('')}
+            ${(p.deductions||[]).length?`<div class="text-slate-500 mt-1">Pot.: ${(p.deductions||[]).filter(c=>c.id!=='loan').map(c=>`${c.name} ${fmt(c.amount)}`).join(', ')}</div>`:''}
+          </td>
+          <td class="py-3">${fmt(p.otPay||0)}</td>
+          <td class="py-3">${fmt(p.gross)}</td>
+          <td class="py-3">${fmt(p.otherDeduct + (p.deductions||[]).reduce((s,c)=>s+c.amount,0))}</td>
+          <td class="py-3">${fmt(p.tax)}</td>
+          <td class="py-3">${fmt(p.bpjs)}</td>
+          <td class="py-3 font-semibold text-emerald-600">${fmt(p.net)}</td>
+          <td class="py-3">
+            <label class="inline-flex items-center gap-2 text-sm">
+              <input type="checkbox" class="accent-emerald-600 accCheck" data-id="${e.id}" ${approved ? 'checked' : ''}>
+              <span>${approved ? 'Sudah ACC' : 'Belum'}</span>
+            </label>
+          </td>
+          <td class="py-3 text-right">
+            <div class="inline-flex gap-2">
+              <button class="btn chip px-3 py-1 rounded-lg" data-preview="${e.id}">Preview</button>
+              <button class="btn chip px-3 py-1 rounded-lg" data-print-one="${e.id}">Cetak</button>
+            </div>
+          </td>
+        </tr>
+      `).join('') || `<tr><td colspan="11" class="py-6 text-center text-slate-600">Tidak ada data untuk periode ini.</td></tr>`;
+
+      $('#dashEmp').textContent = employees.length;
+      $('#dashGross').textContent = fmt(totalGross);
+      $('#dashOT').textContent = fmt(totalOT);
+      $('#dashNet').textContent = fmt(totalNet);
+
+      // Binds
+      $('#selectAllForPrint').onchange = (ev) => {
+        const checked = ev.target.checked;
+        $$('.rowCheck').forEach(cb => {
+          cb.checked = checked;
+          if(checked) selectedForPrint.add(cb.dataset.id); else selectedForPrint.delete(cb.dataset.id);
+        });
+      };
+      $$('.rowCheck').forEach(cb => cb.onchange = () => {
+        if(cb.checked) selectedForPrint.add(cb.dataset.id); else selectedForPrint.delete(cb.dataset.id);
+      });
+
+      $$('.accCheck').forEach(cb => cb.onchange = () => {
+        const id = cb.dataset.id;
+        const p = $('#periodInput').value;
+        if(!payruns[p]) payruns[p] = {};
+        if(!payruns[p][id]) payruns[p][id] = {};
+        payruns[p][id].approved = cb.checked;
+        store.setRun(payruns);
+        const span = cb.nextElementSibling;
+        if(span) span.textContent = cb.checked ? 'Sudah ACC' : 'Belum';
+      });
+
+      $$('.btn[data-preview]').forEach(b => b.onclick = () => {
+        const id = b.getAttribute('data-preview');
+        openSingleSlip(id, $('#periodInput').value, true);
+      });
+
+      $$('.btn[data-print-one]').forEach(b => b.onclick = () => {
+        const id = b.getAttribute('data-print-one');
+        previewAndPrintSingle(id, $('#periodInput').value);
+      });
+    }
+
+    function renderSlipTabDefaults(){
+      const any = employees[0]?.id || '';
+      $('#empForSlip').value = any;
+      const nowYM = new Date().toISOString().slice(0,7);
+      if(!$('#periodSlip').value) $('#periodSlip').value = nowYM;
+    }
+
+    function renderAll(){
+      renderEmployees();
+      renderPayroll();
+      renderSlipTabDefaults();
+      renderThrTable(); // THR
+      renderAnalytics();
+      renderBatch();
+      renderProfiles();
+      renderAttendanceSummary();
+    }
+
+    // Slip helpers + QR
+    function buildVerifyPayload(emp, period, p, slipNo){
+      const prof = getActiveProfile();
+      const payload = {
+        t: 'PAYROLL',
+        company: prof.name,
+        nik: emp.nik, name: emp.name, dept: emp.dept, role: emp.role,
+        period, slipNo,
+        gross: p.gross, net: p.net, tax: p.tax, bpjs: p.bpjs
+      };
+      const json = JSON.stringify(payload);
+      const sig = hashString(json);
+      return btoa(unescape(encodeURIComponent(JSON.stringify({payload, sig}))));
+    }
+
+    function drawSimpleQR(canvas, str){
+      // Bukan QR standar: grid pseudo-QR dari hash untuk verifikasi lokal
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+      ctx.fillStyle = '#fff'; ctx.fillRect(0,0,size,size);
+      const hash = hashString(str);
+      const bits = [];
+      for(let i=0;i<hash.length;i++){
+        const n = parseInt(hash[i],16);
+        for(let b=0;b<4;b++){ bits.push((n>>b)&1); }
+      }
+      const cells = 19; // 19x19
+      const pad = 2;
+      const cell = Math.floor((size - pad*2) / cells);
+      ctx.fillStyle = '#111827';
+      let k=0;
+      for(let y=0;y<cells;y++){
+        for(let x=0;x<cells;x++){
+          if((x<3 && y<3) || (x>cells-4 && y<3) || (x<3 && y>cells-4)){
+            // finder-like blocks
+            ctx.strokeStyle = '#1f2937';
+            ctx.strokeRect(pad + x*cell, pad + y*cell, cell, cell);
+            continue;
+          }
+          const on = bits[k % bits.length] === 1;
+          if(on) ctx.fillRect(pad + x*cell, pad + y*cell, cell, cell);
+          k++;
+        }
+      }
+    }
+
+    function fillSlipDom(emp, period, p, container=document){
+      const prof = getActiveProfile();
+      $('#activeCompanyName').textContent = prof.name || 'Partner-Gaji';
+      $('#slipCompanyName', container).textContent = prof.name || '-';
+      $('#slipCompany', container).textContent = 'Slip Gaji';
+      $('#slipPeriod', container).textContent = 'Periode ' + monthLabel(period);
+
+      // Numbering (do not increment on preview to avoid jumping; only when printing/manual)
+      const slipNo = nextSlipNumber(period);
+      $('#slipNumber', container).textContent = 'No: ' + slipNo;
+
+      $('#slipName', container).textContent = emp.name || '-';
+      $('#slipNik', container).textContent = emp.nik || '-';
+      $('#slipDept', container).textContent = emp.dept || '-';
+      $('#slipRole', container).textContent = emp.role || '-';
+      $('#slipPayMethod', container).textContent = emp.payMethod || '-';
+      $('#slipTaxStatus', container).textContent = emp.taxStatus || '-';
+      $('#slipBpjs', container).textContent = emp.bpjs || 'Tidak';
+
+      const earn = $('#slipEarnings', container);
+      const ded = $('#slipDeductions', container);
+      earn.innerHTML = `
+        <li class="flex justify-between"><span>Gaji Pokok</span><span>${fmt(p.base)}</span></li>
+        <li class="flex justify-between"><span>Tunj. Jabatan</span><span>${fmt(p.pos)}</span></li>
+        <li class="flex justify-between"><span>Tunj. Lain</span><span>${fmt(p.otherAlw)}</span></li>
+        ${(p.earnings||[]).map(c=>`<li class="flex justify-between"><span>${c.name}</span><span>${fmt(c.amount)}</span></li>`).join('')}
+      `;
+      const dynDedTotal = (p.deductions||[]).reduce((s,c)=>s+Number(c.amount||0),0);
+      ded.innerHTML = `
+        <li class="flex justify-between"><span>Pot. Lain</span><span>${fmt(p.otherDeduct)}</span></li>
+        ${(p.deductions||[]).map(c=>`<li class="flex justify-between"><span>${c.name}</span><span>${fmt(c.amount)}</span></li>`).join('')}
+        <li class="flex justify-between"><span>Pajak (demo)</span><span>${fmt(p.tax)}</span></li>
+        <li class="flex justify-between"><span>BPJS (pegawai)</span><span>${fmt(p.bpjs)}</span></li>
+      `;
+
+      $('#slipGross', container).textContent = fmt(p.gross);
+      $('#slipDeduct', container).textContent = fmt(p.otherDeduct + dynDedTotal);
+      $('#slipTax', container).textContent = fmt(p.tax);
+      $('#slipBpjsAmt', container).textContent = fmt(p.bpjs);
+      $('#slipNet', container).textContent = fmt(p.net);
+
+      // Verification payload + QR
+      const verifyCode = buildVerifyPayload(emp, period, p, slipNo);
+      $('#copyVerifyBtn').onclick = async () => {
+        try { await navigator.clipboard.writeText(verifyCode); alert('Kode verifikasi disalin.'); } catch(e){ prompt('Salin kode verifikasi:', verifyCode); }
+      };
+      const canvas = $('#qrCanvas');
+      if(canvas){ drawSimpleQR(canvas, verifyCode); }
+      // open verify modal from QR click (no camera)
+      if(canvas){
+        canvas.style.cursor = 'pointer';
+        canvas.onclick = ()=> { $('#verifyModal').classList.remove('hidden'); $('#verifyModal').classList.add('flex'); $('#verifyInput').value = verifyCode; };
+      }
+      const vbtn = $('#openVerifyBtn');
+      if(vbtn){ vbtn.onclick = ()=> { $('#verifyModal').classList.remove('hidden'); $('#verifyModal').classList.add('flex'); $('#verifyInput').value = verifyCode; }; }
+    }
+
+    function openSingleSlip(empId, period, inModal=false){
+      const emp = employees.find(e => e.id === empId);
+      if(!emp){ alert('Karyawan tidak ditemukan.'); return; }
+      const p = calcPayroll(emp, period);
+      fillSlipDom(emp, period, p, $('#singleSlipArea'));
+      if(inModal){
+        setTab('slip');
+        window.scrollTo({top: 0, behavior: 'smooth'});
+      }
+    }
+    function previewAndPrintSingle(empId, period){
+      openSingleSlip(empId, period, false);
+      setTab('slip');
+      setTimeout(()=> window.print(), 100);
+    }
+
+    function buildMassSlips(ids, period, mode='payroll', extraData={}){
+      const wrap = $('#massSlips');
+      const prof = getActiveProfile();
+      wrap.innerHTML = ids.map(id => {
+        const emp = employees.find(e => e.id === id);
+        if(!emp) return '';
+        if(mode === 'thr'){
+          const amount = extraData.values?.[id] ?? 0;
+          const slipNo = nextSlipNumber(period);
+          const verifyCode = btoa(unescape(encodeURIComponent(JSON.stringify({
+            payload: { t:'THR', company: prof.name, nik: emp.nik, period, slipNo, value: amount },
+            sig: hashString(emp.nik + period + amount)
+          }))));
+          return `
+            <section class="slip rounded-xl bg-white text-slate-900 p-6 shadow">
+              <div class="flex items-center justify-between gap-4 border-b pb-3">
+                <div class="font-extrabold text-lg">${prof.name || 'Partner-Gaji'}</div>
+                <div class="text-sm text-right">
+                  <div>Slip ${extraData.type === 'bonus' ? 'Bonus' : 'THR'}</div>
+                  <div class="text-slate-600">${monthLabel(extraData.period)}</div>
+                  <div class="text-slate-500">No: ${slipNo}</div>
+                </div>
+              </div>
+              <div class="grid md:grid-cols-2 gap-3 mt-3 text-sm">
+                <div>
+                  <div><span class="text-slate-500">Nama:</span> ${emp.name||'-'}</div>
+                  <div><span class="text-slate-500">NIK Karyawan:</span> ${emp.nik||'-'}</div>
+                  <div><span class="text-slate-500">Divisi:</span> ${emp.dept||'-'}</div>
+                  <div><span class="text-slate-500">Jabatan:</span> ${emp.role||'-'}</div>
+                </div>
+                <div>
+                  <div><span class="text-slate-500">Tanggal Bergabung:</span> ${emp.joinDate || '-'}</div>
+                  <div><span class="text-slate-500">Perusahaan:</span> ${prof.name||'-'}</div>
+                </div>
+              </div>
+              <div class="mt-3 text-sm">
+                <div class="font-medium text-slate-700 mb-1">Rincian</div>
+                <div class="flex justify-between"><span>${extraData.type==='bonus'?'Bonus':'THR'}</span><span>${fmt(amount)}</span></div>
+              </div>
+              <div class="mt-3 border-t pt-2 grid grid-cols-2 gap-2 text-sm">
+                <div class="text-slate-900 font-bold">Dibayarkan</div><div class="text-right font-extrabold text-emerald-600">${fmt(amount)}</div>
+              </div>
+              <div class="mt-4 flex items-center justify-between">
+                <div class="text-xs text-slate-500">Slip ini dihasilkan otomatis oleh Partner-Gaji (demo).</div>
+                <canvas width="76" height="76" class="border border-slate-200 rounded" data-qr="${verifyCode}"></canvas>
+              </div>
+            </section>
+          `;
+        } else {
+          const p = calcPayroll(emp, period);
+          const slipNo = nextSlipNumber(period);
+          const verifyCode = buildVerifyPayload(emp, period, p, slipNo);
+          return `
+            <section class="slip rounded-xl bg-white text-slate-900 p-6 shadow">
+              <div class="flex items-center justify-between gap-4 border-b pb-3">
+                <div class="font-extrabold text-lg">${prof.name || 'Partner-Gaji'}</div>
+                <div class="text-sm text-right">
+                  <div>Slip Gaji</div>
+                  <div class="text-slate-600">${monthLabel(period)}</div>
+                  <div class="text-slate-500">No: ${slipNo}</div>
+                </div>
+              </div>
+              <div class="grid md:grid-cols-2 gap-3 mt-3 text-sm">
+                <div>
+                  <div><span class="text-slate-500">Nama:</span> ${emp.name||'-'}</div>
+                  <div><span class="text-slate-500">NIK Karyawan:</span> ${emp.nik||'-'}</div>
+                  <div><span class="text-slate-500">Divisi:</span> ${emp.dept||'-'}</div>
+                  <div><span class="text-slate-500">Jabatan:</span> ${emp.role||'-'}</div>
+                </div>
+                <div>
+                  <div><span class="text-slate-500">Metode Bayar:</span> ${emp.payMethod||'-'}</div>
+                  <div><span class="text-slate-500">Status Pajak:</span> ${emp.taxStatus||'-'}</div>
+                  <div><span class="text-slate-500">BPJS:</span> ${emp.bpjs||'Tidak'}</div>
+                </div>
+              </div>
+              <div class="mt-3">
+                <div class="grid md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div class="font-medium text-slate-700 mb-1">Pendapatan</div>
+                    <ul class="space-y-1">
+                      <li class="flex justify-between"><span>Gaji Pokok</span><span>${fmt(p.base)}</span></li>
+                      <li class="flex justify-between"><span>Tunj. Jabatan</span><span>${fmt(p.pos)}</span></li>
+                      <li class="flex justify-between"><span>Tunj. Lain</span><span>${fmt(p.otherAlw)}</span></li>
+                      ${(p.earnings||[]).map(c=>`<li class="flex justify-between"><span>${c.name}</span><span>${fmt(c.amount)}</span></li>`).join('')}
+                    </ul>
+                  </div>
+                  <div>
+                    <div class="font-medium text-slate-700 mb-1">Potongan</div>
+                    <ul class="space-y-1">
+                      <li class="flex justify-between"><span>Pot. Lain</span><span>${fmt(p.otherDeduct)}</span></li>
+                      ${(p.deductions||[]).map(c=>`<li class="flex justify-between"><span>${c.name}</span><span>${fmt(c.amount)}</span></li>`).join('')}
+                      <li class="flex justify-between"><span>Pajak (demo)</span><span>${fmt(p.tax)}</span></li>
+                      <li class="flex justify-between"><span>BPJS (pegawai)</span><span>${fmt(p.bpjs)}</span></li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="mt-3 border-t pt-2 grid grid-cols-2 gap-2 text-sm">
+                  <div class="text-slate-600">Gaji Kotor</div><div class="text-right font-semibold">${fmt(p.gross)}</div>
+                  <div class="text-slate-600">Total Potongan</div><div class="text-right font-semibold">${fmt(p.otherDeduct + (p.deductions||[]).reduce((s,c)=>s+c.amount,0))}</div>
+                  <div class="text-slate-600">Pajak</div><div class="text-right font-semibold">${fmt(p.tax)}</div>
+                  <div class="text-slate-600">BPJS (pegawai)</div><div class="text-right font-semibold">${fmt(p.bpjs)}</div>
+                  <div class="text-slate-900 font-bold">Dibayarkan (Net)</div><div class="text-right font-extrabold text-emerald-600">${fmt(p.net)}</div>
+                </div>
+              </div>
+              <div class="mt-4 flex items-center justify-between">
+                <div class="text-xs text-slate-500">Slip ini dihasilkan otomatis oleh Partner-Gaji (demo).</div>
+                <canvas width="76" height="76" class="border border-slate-200 rounded" data-qr="${verifyCode}"></canvas>
+              </div>
+            </section>
+          `;
+        }
+      }).join('');
+
+      // draw QR on all canvases
+      $$('#massSlips canvas[data-qr]').forEach(c => drawSimpleQR(c, c.getAttribute('data-qr')));
+    }
+
+    // THR/Bonus
+    function monthsWorkedThisYear(joinDateStr, year){
+      if(!joinDateStr) return 12;
+      const join = new Date(joinDateStr);
+      const start = new Date(year, 0, 1);
+      const effectiveStart = join > start ? join : start;
+      let months = 0;
+      for(let m=0;m<12;m++){
+        const last = new Date(year, m+1, 0);
+        if(last < effectiveStart) continue;
+        months++;
+      }
+      return Math.min(12, Math.max(0, months));
+    }
+
+    function calcThrValues(){
+      const type = $('#thrType').value; // 'thr' | 'bonus'
+      const period = $('#thrPeriod').value;
+      const pct = Number($('#thrPercent').value || 0);
+      const pror = $('#thrProrate').value;
+      if(!period){ return {}; }
+      const [y] = period.split('-').map(Number);
+      const values = {};
+      employees.forEach(e => {
+        const base = Number(e.base||0);
+        let amt = Math.round(base * pct / 100);
+        if(type === 'thr' && pror === 'year'){
+          const m = monthsWorkedThisYear(e.joinDate, y);
+          amt = Math.round(amt * (m/12));
+        }
+        values[e.id] = Math.max(0, amt);
+      });
+      return { type, period, values };
+    }
+
+    function renderThrTable(){
+      const data = calcThrValues();
+      thrSelected = new Set();
+      $('#thrSelectAll').checked = false;
+
+      const rows = employees.map(e => {
+        const base = Number(e.base||0);
+        const [y] = ($('#thrPeriod').value||'').split('-').map(Number);
+        const m = y ? monthsWorkedThisYear(e.joinDate, y) : 0;
+        const val = data.values?.[e.id] ?? 0;
+        return { e, base, m, val };
+      });
+
+      $('#thrTable').innerHTML = rows.map(({e,base,m,val}) => `
+        <tr>
+          <td class="py-3"><input type="checkbox" class="accent-blue-600 thrRowCheck" data-id="${e.id}"></td>
+          <td class="py-3"><div class="font-semibold">${e.name}</div><div class="text-xs text-slate-500">${e.nik}</div></td>
+          <td class="py-3">${fmt(base)}</td>
+          <td class="py-3">${m}</td>
+          <td class="py-3 font-semibold">${fmt(val)}</td>
+          <td class="py-3 text-right"><button class="btn chip px-3 py-1 rounded-lg" data-thr-slip="${e.id}">Slip</button></td>
+        </tr>
+      `).join('') || `<tr><td colspan="6" class="py-6 text-center text-slate-600">Tidak ada data.</td></tr>`;
+
+      $('#thrSelectAll').onchange = (ev) => {
+        const checked = ev.target.checked;
+        $$('.thrRowCheck').forEach(cb => {
+          cb.checked = checked;
+          if(checked) thrSelected.add(cb.dataset.id); else thrSelected.delete(cb.dataset.id);
+        });
+      };
+      $$('.thrRowCheck').forEach(cb => cb.onchange = () => {
+        if(cb.checked) thrSelected.add(cb.dataset.id); else thrSelected.delete(cb.dataset.id);
+      });
+      $$('#thrTable [data-thr-slip]').forEach(b=>{
+        b.onclick = () => {
+          const id = b.getAttribute('data-thr-slip');
+          const d = calcThrValues();
+          buildMassSlips([id], d.period, 'thr', {type: d.type, period: d.period, values: d.values});
+          $('#slipModalTitle').textContent = `Preview Slip ${d.type==='bonus'?'Bonus':'THR'}`;
+          openSlipModal();
+        };
+      });
+    }
+
+    // Analytics & Charts
+    function renderAnalytics(){
+      const period = $('#anaPeriod').value || $('#periodInput').value;
+      $('#anaPeriod').value = period;
+
+      // per dept net
+      const byDept = {};
+      employees.forEach(e => {
+        const p = calcPayroll(e, period);
+        byDept[e.dept||'Tidak Ditetapkan'] = (byDept[e.dept||'Tidak Ditetapkan']||0) + p.net;
+      });
+      const entries = Object.entries(byDept).sort((a,b)=>b[1]-a[1]);
+      const maxVal = Math.max(1, ...entries.map(([,v])=>v));
+      $('#chartDept').innerHTML = entries.map(([dept, val]) => `
+        <div>
+          <div class="flex justify-between text-sm mb-1"><span>${dept}</span><span class="font-semibold">${fmt(val)}</span></div>
+          <div class="w-full h-3 bg-blue-50 rounded">
+            <div class="h-3 rounded" style="width:${Math.round(val/maxVal*100)}%; background: linear-gradient(90deg, var(--brandA), var(--brandB));"></div>
+          </div>
+        </div>
+      `).join('') || '<div class="text-slate-600 text-sm">Belum ada data.</div>';
+
+      // top cost center
+      $('#topCostCenter').textContent = entries[0] ? `${entries[0][0]} — ${fmt(entries[0][1])}` : '-';
+
+      // trend last 6 months kotor vs net
+      const pointsGross = [], pointsNet = [];
+      const labels = [];
+      const now = new Date(period+'-01');
+      for(let i=5;i>=0;i--){
+        const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+        const ym = d.toISOString().slice(0,7);
+        labels.push(ym);
+        let g=0,n=0;
+        employees.forEach(e=>{ const p = calcPayroll(e, ym); g+=p.gross; n+=p.net; });
+        pointsGross.push(g); pointsNet.push(n);
+      }
+      const svg = $('#chartTrend');
+      const W=600, H=240, P=30;
+      const maxY = Math.max(1, ...pointsGross, ...pointsNet);
+      const scaleX = (i) => P + i * ((W-2*P)/(labels.length-1));
+      const scaleY = (v) => H-P - (v/maxY)*(H-2*P);
+      const poly = (arr, color) => `<polyline fill="none" stroke="${color}" stroke-width="2" points="${arr.map((v,i)=>`${scaleX(i)},${scaleY(v)}`).join(' ')}"/>`;
+      const dots = (arr, color) => arr.map((v,i)=>`<circle cx="${scaleX(i)}" cy="${scaleY(v)}" r="3" fill="${color}"/>`).join('');
+      svg.innerHTML = `
+        <rect x="0" y="0" width="${W}" height="${H}" fill="#fff"/>
+        <g stroke="#e5e7eb" stroke-width="1">
+          ${[0,1,2,3].map(i=>{
+            const y = P + i*((H-2*P)/4);
+            return `<line x1="${P}" y1="${y}" x2="${W-P}" y2="${y}"/>`;
+          }).join('')}
+        </g>
+        ${poly(pointsGross, '#60a5fa')}
+        ${poly(pointsNet, '#10b981')}
+        ${dots(pointsGross, '#60a5fa')}
+        ${dots(pointsNet, '#10b981')}
+        ${labels.map((l,i)=>`<text x="${scaleX(i)}" y="${H-8}" font-size="10" text-anchor="middle" fill="#64748b">${l}</text>`).join('')}
+        <rect x="${W-180}" y="${P-10}" width="170" height="34" rx="6" fill="#ffffff" stroke="#e5e7eb"/>
+        <circle cx="${W-160}" cy="${P+7}" r="5" fill="#60a5fa"/><text x="${W-148}" y="${P+11}" font-size="12" fill="#334155">Kotor</text>
+        <circle cx="${W-100}" cy="${P+7}" r="5" fill="#10b981"/><text x="${W-88}" y="${P+11}" font-size="12" fill="#334155">Net</text>
+      `;
+    }
+
+    // Batch edit & validation
+    function renderBatch(){
+      // validation
+      const missingDept = employees.filter(e=>!e.dept);
+      const missingTax = employees.filter(e=>!e.taxStatus);
+      const missingBpjs = employees.filter(e=>!e.bpjs);
+      $('#validationList').innerHTML = `
+        <div>- Tanpa Divisi: ${missingDept.length} karyawan</div>
+        <div>- Tanpa Status Pajak: ${missingTax.length} karyawan</div>
+        <div>- Tanpa BPJS: ${missingBpjs.length} karyawan</div>
+      `;
+
+      // list employees with checkbox
+      $('#batchEmpList').innerHTML = employees.map(e=>`
+        <label class="flex items-center gap-2 py-1">
+          <input type="checkbox" class="accent-blue-600 batchPick" value="${e.id}">
+          <span>${e.name} <span class="text-xs text-slate-500">— ${e.nik}</span></span>
+        </label>
+      `).join('') || '<div class="text-slate-600 text-sm">Tidak ada data.</div>';
+    }
+
+    function batchAddComponent(){
+      const ids = $$('.batchPick').filter(cb=>cb.checked).map(cb=>cb.value);
+      if(!ids.length){ alert('Pilih minimal satu karyawan.'); return; }
+      const c = {
+        id: crypto.randomUUID(),
+        name: ($('#batchName').value||'').trim(),
+        kind: $('#batchKind').value,
+        mode: $('#batchMode').value,
+        value: Number($('#batchValue').value||0)
+      };
+      if(!c.name){ alert('Nama komponen wajib diisi.'); return; }
+      employees = employees.map(e=>{
+        if(ids.includes(e.id)){
+          const arr = Array.isArray(e.components)?[...e.components]:[];
+          arr.push({...c, id: crypto.randomUUID()});
+          return {...e, components: arr};
+        }
+        return e;
+      });
+      store.setEmp(employees);
+      renderBatch();
+      alert('Komponen ditambahkan.');
+    }
+
+    function batchRemoveComponent(){
+      const ids = $$('.batchPick').filter(cb=>cb.checked).map(cb=>cb.value);
+      if(!ids.length){ alert('Pilih minimal satu karyawan.'); return; }
+      const name = ($('#batchName').value||'').trim();
+      if(!name){ alert('Isi nama komponen yang akan dihapus.'); return; }
+      employees = employees.map(e=>{
+        if(ids.includes(e.id)){
+          const arr = (e.components||[]).filter(c=>c.name.toLowerCase() !== name.toLowerCase());
+          return {...e, components: arr};
+        }
+        return e;
+      });
+      store.setEmp(employees);
+      renderBatch();
+      alert('Komponen dihapus (berdasarkan nama).');
+    }
+
+    function fixMissing(field, value){
+      employees.forEach(e => { if(!e[field]) e[field] = value; });
+      store.setEmp(employees);
+      renderBatch();
+      renderEmployees();
+      alert('Perbaikan selesai.');
+    }
+
+    // CSV helpers (employees/recap/thr) from previous build
+    function toCSV(rows, headers){
+      const esc = (v)=> {
+        if(v==null) return '';
+        const s = String(v).replace(/"/g,'""');
+        return /[",\n]/.test(s) ? `"${s}"` : s;
+      };
+      const head = headers.map(h=>esc(h)).join(',');
+      const body = rows.map(r => headers.map(h=>esc(r[h])).join(',')).join('\n');
+      return head + '\n' + body;
+    }
+    function exportEmployeesCSV(){
+      const rows = employees.map(e => ({
+        id: e.id,
+        name: e.name, nik: e.nik, dept: e.dept, role: e.role,
+        address: e.address, taxStatus: e.taxStatus, bpjs: e.bpjs, payMethod: e.payMethod,
+        base: e.base, posAllowance: e.posAllowance, otherAllowance: e.otherAllowance, otherDeduct: e.otherDeduct,
+        note: e.note, joinDate: e.joinDate || '', status: e.status || 'aktif',
+        components: JSON.stringify(e.components||[])
+      }));
+      const headers = ['id','name','nik','dept','role','address','taxStatus','bpjs','payMethod','base','posAllowance','otherAllowance','otherDeduct','note','joinDate','status','components'];
+      const csv = toCSV(rows, headers);
+      download(`partner-gaji-karyawan.csv`, csv);
+    }
+    function importEmployeesCSV(){
+      const inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = '.csv,text/csv';
+      inp.onchange = (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const text = reader.result;
+          const lines = text.split(/\r?\n/).filter(Boolean);
+          const headers = lines.shift().split(',').map(h=>h.trim().replace(/^"|"$/g,''));
+          const idx = (h)=> headers.indexOf(h);
+          const arr = lines.map(line => {
+            const cols = [];
+            let cur = '', inQ=false;
+            for(let i=0;i<line.length;i++){
+              const ch = line[i];
+              if(ch === '"'){
+                if(inQ && line[i+1] === '"'){ cur+='"'; i++; }
+                else inQ = !inQ;
+              } else if(ch === ',' && !inQ){
+                cols.push(cur); cur='';
+              } else cur+=ch;
+            }
+            cols.push(cur);
+            const get = (h)=> cols[idx(h)]?.trim().replace(/^"|"$/g,'') || '';
+            let comps = [];
+            try{ comps = JSON.parse(get('components')||'[]'); }catch(e){}
+            return {
+              id: get('id') || crypto.randomUUID(),
+              name: get('name'), nik: get('nik'), dept: get('dept'), role: get('role'),
+              address: get('address'), taxStatus: get('taxStatus'), bpjs: get('bpjs'), payMethod: get('payMethod'),
+              base: Number(get('base')||0), posAllowance: Number(get('posAllowance')||0), otherAllowance: Number(get('otherAllowance')||0), otherDeduct: Number(get('otherDeduct')||0),
+              note: get('note'), joinDate: get('joinDate')||'', status: get('status')||'aktif',
+              components: Array.isArray(comps)?comps:[]
+            };
+          });
+          if(!confirm(`Impor ${arr.length} baris? Data dengan NIK sama akan ditimpa.`)) return;
+          arr.forEach(n => {
+            const i = employees.findIndex(e => e.nik === n.nik);
+            if(i>=0) employees[i] = {...employees[i], ...n};
+            else employees.push(n);
+          });
+          store.setEmp(employees);
+          renderAll();
+          alert('Impor selesai.');
+        };
+        reader.readAsText(file);
+      };
+      inp.click();
+    }
+    function exportRecapCSV(){
+      const period = $('#periodInput').value;
+      if(!period){ alert('Isi periode terlebih dahulu.'); return; }
+      const rows = employees.map(e => {
+        const p = calcPayroll(e, period);
+        return {
+          period,
+          name: e.name, nik: e.nik, dept: e.dept, role: e.role,
+          gross: p.gross, overtime: p.otPay, other_deductions: p.otherDeduct + (p.deductions||[]).reduce((s,c)=>s+c.amount,0),
+          tax: p.tax, bpjs: p.bpjs, net: p.net
+        };
+      });
+      const headers = ['period','name','nik','dept','role','gross','overtime','other_deductions','tax','bpjs','net'];
+      const csv = toCSV(rows, headers);
+      download(`partner-gaji-rekap-${period}.csv`, csv);
+    }
+    function exportThrCSV(){
+      const d = calcThrValues();
+      const rows = employees.map(e => ({
+        period: d.period, type: d.type, name: e.name, nik: e.nik, value: d.values?.[e.id]||0
+      }));
+      const headers = ['period','type','name','nik','value'];
+      const csv = toCSV(rows, headers);
+      download(`partner-gaji-${d.type}-${d.period}.csv`, csv);
+    }
+
+    // Verify modal logic
+    function openVerifyModal(){ $('#verifyModal').classList.remove('hidden'); $('#verifyModal').classList.add('flex'); }
+    function closeVerifyModal(){ $('#verifyModal').classList.add('hidden'); $('#verifyModal').classList.remove('flex'); }
+    function doVerify(){
+      const code = $('#verifyInput').value.trim();
+      if(!code){ alert('Tempel kode terlebih dahulu.'); return; }
+      try{
+        const obj = JSON.parse(decodeURIComponent(escape(atob(code))));
+        const ok = obj.sig && typeof obj.payload === 'object';
+        $('#verifyResult').innerHTML = ok ? `
+          <div class="grid grid-cols-2 gap-2">
+            <div class="text-slate-500">Jenis</div><div>${obj.payload.t}</div>
+            <div class="text-slate-500">Perusahaan</div><div>${obj.payload.company}</div>
+            <div class="text-slate-500">Periode</div><div>${obj.payload.period}</div>
+            <div class="text-slate-500">Slip No</div><div>${obj.payload.slipNo||'-'}</div>
+            <div class="text-slate-500">NIK</div><div>${obj.payload.nik}</div>
+            ${obj.payload.gross!=null?`<div class="text-slate-500">Kotor</div><div>${fmt(obj.payload.gross)}</div>`:''}
+            <div class="text-slate-500">Dibayarkan</div><div>${fmt(obj.payload.net||obj.payload.value||0)}</div>
+          </div>
+        ` : '<div class="text-rose-600">Kode tidak valid.</div>';
+      }catch(e){
+        $('#verifyResult').innerHTML = '<div class="text-rose-600">Kode tidak valid.</div>';
+      }
+    }
+
+    // Events
+    $$('.tab').forEach(b => b.onclick = () => setTab(b.dataset.tab));
+    $('#templatesBtn').onclick = () => openTplModal();
+    $('#seedDataBtn').onclick = seedData;
+    $('#clearDataBtn').onclick = clearData;
+
+    // Employee actions
+    $('#addEmpBtn').onclick = () => openEmpModal();
+    $('#cancelEmpBtn').onclick = closeEmpModal;
+    $('#closeEmpModal').onclick = closeEmpModal;
+    $('#empForm').addEventListener('submit', saveEmp);
+    $('#searchEmp').addEventListener('input', renderEmployees);
+    $('#filterDept').addEventListener('change', renderEmployees);
+    $('#addCompBtn').onclick = addCompRow;
+    $('#applyTemplateBtn').onclick = applyTemplateToEmp;
+
+    // Templates events
+    $('#closeTplModal').onclick = closeTplModal;
+    $('#addTplCompBtn').onclick = addTplComp;
+    $('#tplForm').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const id = $('#tplId').value || crypto.randomUUID();
+      const name = ($('#tplName').value || '').trim();
+      if(!name){ alert('Nama template wajib diisi.'); return; }
+      const components = readCompList($('#tplModal'));
+      const idx = templates.findIndex(t => t.id === id);
+      const data = { id, name, components };
+      if(idx>=0) templates[idx] = data; else templates.push(data);
+      store.setTpl(templates);
+      renderTplList();
+      alert('Template disimpan.');
+    });
+
+    // Payroll events
+    $('#periodInput').addEventListener('change', renderPayroll);
+    $('#filterAcc').addEventListener('change', renderPayroll);
+    $('#recalcBtn').onclick = renderPayroll;
+    $('#exportRecapBtn').onclick = exportRecapCSV;
+
+    $('#bulkApproveBtn').onclick = () => {
+      const period = $('#periodInput').value;
+      if(!period){ alert('Isi periode terlebih dahulu.'); return; }
+      if(selectedForPrint.size === 0){ alert('Pilih minimal satu karyawan.'); return; }
+      if(!payruns[period]) payruns[period] = {};
+      selectedForPrint.forEach(id => {
+        if(!payruns[period][id]) payruns[period][id] = {};
+        payruns[period][id].approved = true;
+      });
+      store.setRun(payruns);
+      renderPayroll();
+      alert('Status ACC diset untuk karyawan terpilih.');
+    };
+
+    // Apply loan remaining update for approved
+    $('#applyLoanBtn').onclick = () => {
+      const period = $('#periodInput').value;
+      if(!period){ alert('Isi periode terlebih dahulu.'); return; }
+      const approvedIds = Object.entries(payruns[period]||{}).filter(([,v])=>v.approved).map(([id])=>id);
+      if(!approvedIds.length){ alert('Belum ada karyawan yang di-ACC.'); return; }
+      approvedIds.forEach(id => {
+        const emp = employees.find(e=>e.id===id);
+        const p = calcPayroll(emp, period);
+        if(loans[id]){
+          loans[id].remaining = Math.max(0, Number(loans[id].remaining||0) - Number(loans[id].installment||0));
+        }
+      });
+      store.setLoan(loans);
+      renderPayroll();
+      renderLoans();
+      alert('Saldo pinjaman diperbarui untuk yang di-ACC.');
+    };
+
+    $('#bulkSlipBtn').onclick = () => {
+      const ids = Array.from(selectedForPrint);
+      const period = $('#periodInput').value;
+      if(ids.length === 0){ alert('Pilih minimal satu karyawan.'); return; }
+      if(!period){ alert('Isi periode terlebih dahulu.'); return; }
+      buildMassSlips(ids, period);
+      $('#slipModalTitle').textContent = 'Preview Slip (Massal)';
+      openSlipModal();
+    };
+
+    // Slip tab events
+    function openSlipModal(){
+      $('#slipModal').classList.remove('hidden');
+      $('#slipModal').classList.add('flex');
+    }
+    function closeSlipModal(){
+      $('#slipModal').classList.add('hidden');
+      $('#slipModal').classList.remove('flex');
+    }
+    $('#closeSlipModal').onclick = closeSlipModal;
+    $('#printAllBtn').onclick = () => window.print();
+
+    $('#previewSlipBtn').onclick = () => {
+      const id = $('#empForSlip').value;
+      const period = $('#periodSlip').value;
+      if(!id || !period) { alert('Pilih karyawan & periode.'); return; }
+      openSingleSlip(id, period, false);
+    };
+    $('#printSlipBtn').onclick = () => {
+      const id = $('#empForSlip').value;
+      const period = $('#periodSlip').value;
+      if(!id || !period) { alert('Pilih karyawan & periode.'); return; }
+      previewAndPrintSingle(id, period);
+    };
+
+    // THR events
+    const nowYM = new Date().toISOString().slice(0,7);
+    $('#thrPeriod').value = nowYM;
+    $('#thrType').addEventListener('change', renderThrTable);
+    $('#thrPeriod').addEventListener('change', renderThrTable);
+    $('#thrPercent').addEventListener('input', renderThrTable);
+    $('#thrProrate').addEventListener('change', renderThrTable);
+    $('#calcThrBtn').onclick = renderThrTable;
+    $('#exportThrBtn').onclick = exportThrCSV;
+
+    $('#thrApproveBtn').onclick = () => {
+      const d = calcThrValues();
+      if(!d.period){ alert('Isi periode terlebih dahulu.'); return; }
+      if(thrSelected.size === 0){ alert('Pilih minimal satu karyawan.'); return; }
+      if(!thrRuns[d.period]) thrRuns[d.period] = {};
+      thrSelected.forEach(id => {
+        if(!thrRuns[d.period][id]) thrRuns[d.period][id] = {};
+        thrRuns[d.period][id].value = d.values[id];
+        thrRuns[d.period][id].approved = true;
+      });
+      store.setThr(thrRuns);
+      alert('THR/Bonus diset ACC untuk karyawan terpilih.');
+    };
+
+    $('#thrSlipBtn').onclick = () => {
+      const d = calcThrValues();
+      const ids = Array.from(thrSelected);
+      if(ids.length === 0){ alert('Pilih minimal satu karyawan.'); return; }
+      buildMassSlips(ids, d.period, 'thr', { type: d.type, period: d.period, values: d.values });
+      $('#slipModalTitle').textContent = `Preview Slip ${d.type==='bonus'?'Bonus':'THR'} (Massal)`;
+      openSlipModal();
+    };
+
+    // Analytics events
+    $('#anaRefreshBtn').onclick = renderAnalytics;
+    $('#anaPeriod').addEventListener('change', renderAnalytics);
+
+    // Batch events
+    $('#batchAddBtn').onclick = batchAddComponent;
+    $('#batchRemoveBtn').onclick = batchRemoveComponent;
+    $('#fixMissingDept').onclick = () => fixMissing('dept', 'Umum');
+    $('#fixMissingTax').onclick = () => fixMissing('taxStatus', 'TK/0');
+    $('#fixMissingBpjs').onclick = () => fixMissing('bpjs', 'Tidak');
+
+    // Kehadiran events
+    $('#attPeriod').value = nowYM;
+    $('#importAttBtn').onclick = importAttendanceCSV;
+    $('#clearAttBtn').onclick = clearAttendancePeriod;
+    $('#attPeriod').addEventListener('change', renderAttendanceSummary);
+
+    // Loans events
+    $('#loanAddBtn').onclick = addOrUpdateLoan;
+
+    // Profiles events
+    $('#addProfileBtn').onclick = addProfile;
+    $('#saveProfilesBtn').onclick = saveProfiles;
+    $('#activeProfile').onchange = (e)=>{ activeProfileId = e.target.value; store.setActiveProf(activeProfileId); renderProfiles(); };
+
+    // CSV toolbar (karyawan)
+    $('#exportEmpBtn').onclick = exportEmployeesCSV;
+    $('#importEmpBtn').onclick = importEmployeesCSV;
+
+    // Verify modal events
+    $('#closeVerifyModal').onclick = closeVerifyModal;
+    $('#doVerifyBtn').onclick = doVerify;
+
+    // Keyboard shortcut for search
+    document.addEventListener('keydown', (e) => {
+      if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){
+        e.preventDefault();
+        $('#searchEmp').focus();
+      }
+    });
+
+    // Init
+    (function init(){
+      setTab('karyawan');
+      $('#periodInput').value = nowYM;
+      $('#periodSlip').value = nowYM;
+      $('#yearNow').textContent = new Date().getFullYear();
+      if(!profiles.length){
+        profiles = [{ id: crypto.randomUUID(), name: 'Partner-Gaji', logo: 'https://ik.imagekit.io/logojkdiy/Partnerbisnis%20-%20Logo%20(2).png?updatedAt=.', address: '' }];
+        activeProfileId = profiles[0].id;
+        store.setProf(profiles); store.setActiveProf(activeProfileId);
+      }
+      renderAll();
+
+      // Close modals when clicking backdrop
+      $('#empModal').addEventListener('click', (e)=>{ if(e.target === $('#empModal')) closeEmpModal(); });
+      $('#tplModal').addEventListener('click', (e)=>{ if(e.target === $('#tplModal')) closeTplModal(); });
+      $('#slipModal').addEventListener('click', (e)=>{ if(e.target === $('#slipModal')) closeSlipModal(); });
+      $('#verifyModal').addEventListener('click', (e)=>{ if(e.target === $('#verifyModal')) closeVerifyModal(); });
+    })();
+  </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98404ece4720fe0f',t:'MTc1ODY5NjIwOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
